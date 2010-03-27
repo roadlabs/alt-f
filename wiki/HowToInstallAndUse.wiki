@@ -2,8 +2,8 @@
 
 = How to install =
 
-1-If you don't have ffp or a fun_plug file in your box root directory, then
-	just download Alt-F-version.tar and fun_plug into your box root directory,
+1-If you don't have ffp or a fun_plug file in your box root directory,
+        then just download Alt-F-version.tar and fun_plug into your box root directory,
 	make sure that fun_plug has execution permission and reboot.
 	This will only work for one reboot; if you want to try again, you must
 	set the execution permissions of fun_plug again.
@@ -11,8 +11,8 @@
 	the line on top that says ONCE. Without this, if there were any problem,
 	then your box would reboot endlessly!
 
-2-If you have a fun_plug file, but don't have ffp, than save your current
-	fun_plug file, and proceed as in 1 above.
+2-If you have a fun_plug file, but don't have ffp,
+        then save your current fun_plug file, and proceed as in 1 above.
 
 3-If you have ffp,
 	3-a) Just want to try Alt-F once in a while:
@@ -46,7 +46,7 @@ When Alt-F boots, it search:
 4-If no DHCP server is available, Alt-F will use the first free IP in the {{{192.168.1.254}}} until {{{192.168.1.240}}} range.
 
 So, after the first boot, your box will have the IP it already had. In the "worst" scenario, the box IP will be {{{192.168.1.240}}}, but this is very unlikely.
-After the first "save settings", it will have the IP specified in the "Host Setup" page.README
+After the first "save settings", it will have the IP specified in the "Host Setup" page.
 
 == What happens at boot time ==
 
@@ -93,5 +93,5 @@ administrative tasks.
 One of the most likely causes for failures in the web pages are spaces in
 filenames and browser caching. Please send a report and a patch.
 
-The reloaded*.ko modules are from fonz ffp-reloaded-0.5-2,
+The reloaded`*`.ko modules are from fonz ffp-reloaded-0.5-2,
 http://www.inreto.de/dns323/ffp-reloaded/packages/ffp-reloaded-0.5-2.tgz
