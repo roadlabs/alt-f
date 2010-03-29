@@ -1,6 +1,0 @@
-config BR2_PACKAGE_SG3_UTILS
-	bool "sg3_utils"
-	help
-	  SCSI utilities
-
-	  http://sg.danny.cz/sg/p

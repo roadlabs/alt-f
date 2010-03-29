@@ -1,6 +1,0 @@
-config BR2_PACKAGE_WGET
-	bool "wget"
-	help
-	  Network utility to retrieve files from http/ftp/etc...
-
-	  http://wget.sunsite.dk/
