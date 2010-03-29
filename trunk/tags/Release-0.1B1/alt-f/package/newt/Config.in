@@ -1,6 +1,0 @@
-config BR2_PACKAGE_NEWT
-	bool "newt"
-	help
-	  Programming library for color text mode, widget based user interfaces.
-
-	  http://www.redhat.com/

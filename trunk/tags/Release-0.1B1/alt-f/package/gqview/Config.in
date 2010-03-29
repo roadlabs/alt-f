@@ -1,6 +1,0 @@
-config BR2_PACKAGE_GQVIEW
-	bool "gqview"
-	help
-	  GQview is an image viewer for Unix operating systems
-
-	  http://prdownloads.sourceforge.net/gqview

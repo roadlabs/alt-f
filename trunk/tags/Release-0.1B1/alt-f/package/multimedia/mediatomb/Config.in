@@ -1,7 +1,0 @@
-config BR2_PACKAGE_MEDIATOMB
-	bool "mediatomb"
-	select BR2_PACKAGE_SQLITE
-	help
-	  uPNP AV server, selects sqlite
-
-	  http://mediatomb.cc

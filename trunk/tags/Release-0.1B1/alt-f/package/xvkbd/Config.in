@@ -1,7 +1,0 @@
-config BR2_PACKAGE_XVKBD
-	bool "xvkbd"
-	depends on BR2_PACKAGE_XORG7
-	help
-	  on-screen keyboard for X
-
-	  http://homepage3.nifty.com/tsato/xvkbd
