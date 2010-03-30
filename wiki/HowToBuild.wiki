@@ -3,7 +3,8 @@
 =How to Build=
 
 {{{
-You know that you don't need to build Alt-F, don't you? you can just download and install it. If building is what you really need, then read on.
+You know that you don't need to build Alt-F, don't you? you can just download and
+ install it. If building is what you really need, then read on.
 
 This source tree is a modified buildroot source tree
 (http://buildroot.uclibc.org buildroot-2009.08), resulting of my changes
@@ -58,7 +59,8 @@ See the source.
 mkinitramfs.sh created the initramfs in $BLDDIR/binaries/dns323,
 "rootfs.arm.cpio-sq.lzma", that you can use together with "zImage" and fonz
 "reloaded" to boot the new kernel.
-The kernel cmdline is simply "console=ttyS0,115200". You can use other kernel recognized options, and also some Alt-F recognized options such as "initdbg",
+The kernel cmdline is simply "console=ttyS0,115200". You can use other kernel
+ recognized options, and also some Alt-F recognized options such as "initdbg",
 that opens a shell for you on the serial console before "init" being run and "nodef", disabling the reading of flash-saved default settings.
 
 The initramfs is a cpio lzma compressed initramfs, where the /usr directory
@@ -124,7 +126,9 @@ This way the toolchain, kernel, and already built packages are not
 rebuilt, only the root directory is repopulated and the rootfs rebuild.
 
 To remake only a package, you should delete its directory under
-$BLDDIR/build_arm, and a) remove all files in $BLDDIR/project_build_arm/dns323/autotools-stamps/ with the package name, or,
+$BLDDIR/build_arm, and
+a) remove all files in
+ $BLDDIR/project_build_arm/dns323/autotools-stamps/ with the package name, or,
 b) if none is found, remove from
  $BLDDIR/project_build_arm/dns323/root the package target.
 You can edit the package makefile in packages/<package-name>/<package-name>.mk
