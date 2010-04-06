@@ -38,6 +38,11 @@ Then,
 	cd alt-f-read-only
 	export BLDDIR=<dir> # where you want the build tree, e.g. ~/Alt-F-build
 	./mkprepare.sh
+
+NOTE: a crucial file is missing from SVN, download it from
+https://sites.google.com/site/altfirmware/home/misc
+and put it in the "dl" directory created by the mkprepare.sh script.
+
 	make O=$BLDDIR
 
 and go for a two hours walk (old P4HT@3.2GHz/2GB) 
