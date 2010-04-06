@@ -48,9 +48,9 @@ the Alt-F fun_plug script will look for a file named Alt-F-<version>.tar and wil
 extract it to a directory named alt-f; it will then try to terminate all running 
 processes, unmount (or set as read-only) all filesystems, and load and run a new
 kernel and filesystem image, the zImage and rootfs.arm.cpio-sq.lzma files).
-That critical process is done using fonz "reloaded" kernel modules, read http://wiki.dns323.info/howto:ffp-reloaded
-http://www.inreto.de/dns323/ or http://forum.dsmg600.info/viewforum.php?id=3
-for more details.
+That critical process is done using fonz "reloaded" kernel modules,
+read http://wiki.dns323.info/howto:ffp-reloaded http://www.inreto.de/dns323/ or
+http://forum.dsmg600.info/viewforum.php?id=3 for more details.
 
 So,after rebooting, the Alt-F-<version>.tar file will disappear and a new directory
 name alt-f will appear.
