@@ -24,9 +24,17 @@ In detail, when Alt-F boots, it search:
 4-If no DHCP server is available, Alt-F will use the first free IP in the
 	192.168.1.254 until 192.168.1.240 range.
 
-So, after booting, your box will hopefully have the same IP as before,
+So, after booting for the first time, if your box was setup with a fixed IP
+in the vendors firmware, it will have the same IP as before.
+If your box was using DHCP in the vendors firmware, then it might have a different
+IP under Alt-F, and you must go to the DHCP server web page (usually your router)
+and find the assigned client IP. Do this before trying Alt-F, to be sure that you
+know how to do it.
 In the "worst" scenario, the box IP will be 192.168.1.240, but this is
 very unlikely.
+
+The easiest and recommended way for a server is for you to setup first the box
+with a fixed IP using the vendors firmware. This will be the IP used by Alt-F.
 
 To login in the web pages, you have to setup a new (volatile) password,
 and "root" password will be the same.
@@ -62,6 +70,10 @@ command "loadsave_settings". If you don't save settings, on each reboot
 a new RSA/DSA key pair is generated for dropbear usage, and your ssh
 client will complain.
 
+After you save the settings in flash, Alt-F will use them on the next reboot,
+so if you set a different IP than before in the host page, be sure that you
+write it down, or you will be lost.
+
 When a new disk is detected, either internal or USB connected, either at
 boot or by hot-plugging,  Alt-F will mount all the disks filesystems in
 the directory /mnt/<name>, where <name> can be either the disk partition
@@ -70,10 +82,13 @@ You can set a filesystem label using the cli command "plabel" (not for
 NTFS). Ext2/3/4/VFAT/NTFS/ISO9660 filesystems are recognized.
 
 RAID-0/1/5 (using an external USB disk) and linear RAID are recognized,
-but RAID filesystems created by the vendor firmware are not
-automatically mounted, only assembled (otherwise the vendor firmware
-will not recognize it as RAID at the next boot). You can however
-manually mount and use them.
+assembled and mounted when a disk is inserted or detected.
+There is yet no RAID setup web page, you have to create them by hand; this
+will change, of course, by now Alt-F only assembles and mounts any RAID
+devices it founds.
+RAID filesystems created by the vendor firmware are not automatically mounted,
+only assembled (otherwise the vendor firmware will not recognize it as RAID at
+the next boot). You can however manually mount and use them.
 
 When mounting filesystems, Alt-F will look for a directory called "ffp"
 in the filesystem root, and if found a link is created to it at the
@@ -99,6 +114,9 @@ right led will start flashing, and if you release the button while it is
 flashing an ordered reboot will be done; if keep pressed by three more
 seconds, the left led will start flashing, and if the button is then
 released, the box will do an ordered shutdown.
+
+The reboot and power-down procedures cleanly stop all processes, unmount
+filesystems, and stop raid devices.
 
 The leds will be steady orange when a RAID device is degraded, and will
 flash in  orange during resync or rebuild.
