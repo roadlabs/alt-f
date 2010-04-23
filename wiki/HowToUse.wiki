@@ -5,27 +5,32 @@
 To use Alt-F you can use its "lame" administering web pages, directing a
 web browser to the box default IP.
 
-When booting, and to assign itself an IP, Alt-F tries to first use its
-own flashed settings; if unsuccessful it then tries to use the vendors
+When booting, and to assign itself an IP, Alt-F tries to first use a IP supplied
+through the kernel command line; if it is not supplied, it then tries
+to use its own flashed settings; if unsuccessful it then tries to use the vendors
 firmware flash defaults; if unsuccessful it then tries to requests a IP
 from a DHCP server and finally tries to find an unassigned IP in the
 192.168.1.254 to 192.168.1.240 range.
 
 In detail, when Alt-F boots, it search:
-0-For a kernel command line supplied IP (advanced users only)
-1-First for its own settings in flash, and use them; you should do a "Save
-	Settings" from the web page when you made any change that you want
-	to preserve across reboots. Alt-F and the vendors defaults can coexist
-	in flash while there is space available;
+0-For a kernel command line supplied name and IP (the default when using the
+	 supplied fun_plug script)
+1-If not found, it will search for its own settings in flash, and use them;
+	you should do a "Save Settings" from the web page when you made any
+	change that you want to preserve across reboots. Alt-F and the vendors
+	defaults can coexist in flash while there is space available;
 2-If not found, it will use one of the vendors default file, and use the IP
-	specified there (if the box was not using DHCP);
+	specified there (if the box was *not* using DHCP);
 3-If not found, it will try to use DHCP, you can consult your router web page
 	to find what IP was assigned;
-4-If no DHCP server is available, Alt-F will use the first free IP in the
-	192.168.1.254 until 192.168.1.240 range.
+4-As a last resort, if no DHCP server is available, Alt-F will use the first
+	free IP in the 192.168.1.254 until 192.168.1.240 range.
 
-So, after booting for the first time, if your box was setup with a fixed IP
-in the vendors firmware, it will have the same IP as before.
+So, when booting using the fun_plug script, your box it will have the same IP,
+and name as before.
+
+If booting after flashing Alt-F, and if your box was setup with a fixed IP
+in the vendors firmware, it will also have the same IP and name as before.
 If your box was using DHCP in the vendors firmware, then it might have a different
 IP under Alt-F, and you must go to the DHCP server web page (usually your router)
 and find the assigned client IP. Do this before trying Alt-F, to be sure that you
