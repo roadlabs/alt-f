@@ -1,0 +1,90 @@
+#!/bin/sh
+
+NAME=mediatomb
+DESC="MediaTomb provides an A/V UPnP service"
+TYPE=user
+
+MT_USER="mediatomb"
+MT_GROUP="multimedia"
+
+MT_PIDFILE="/var/run/mediatomb.pid"
+MT_LOGFILE="/var/log/mediatomb"
+
+MT_HOME="/var/lib"
+MT_CFGDIR="mediatomb"
+
+MT_PORT=50500
+
+MT_ARGS="-d -u $MT_USER -g $MT_GROUP -P $MT_PIDFILE -l $MT_LOGFILE \
+-m $MT_HOME -f $MT_CFGDIR -p $MT_PORT -e eth0"
+
+status() {
+	if start-stop-daemon -K -t -q -n $NAME; then
+		echo "$NAME running"
+		return 0
+	else
+		echo "$NAME stopped"
+		return 1
+	fi
+}
+
+case "$1" in
+  start)
+	echo -n "Starting $NAME: "
+	# Applying multicast settings to eth0
+	route add -net 239.0.0.0 netmask 255.0.0.0 eth0 >& /dev/null
+	ifconfig eth0 allmulti
+	touch $MT_PIDFILE
+	chown mediatomb $MT_PIDFILE
+
+	start-stop-daemon --start --quiet --background --oknodo \
+		--exec $NAME -- $MT_ARGS
+	if test $? = 1; then
+		echo "Fail."
+		exit 1
+	fi
+	echo "OK."
+	exit 0
+	;;
+
+  stop)
+        # Stop daemons.
+        echo -n "Shutting down mediatomb: "
+	start-stop-daemon -K -q -n $NAME
+	if test $? = 1; then
+		echo "Fail."
+		exit 1
+	fi
+	echo "OK."
+	exit 0	
+        ;;
+
+  reload)
+        echo -n "Reloading mediatomb: "
+	start-stop-daemon -K -q -s 1 -n $NAME
+	if test $? = 1; then
+		echo "Fail."
+		exit 1
+	fi
+	echo "OK."
+	exit 0	
+        ;;
+
+  restart|force-reload)
+	echo "Restarting $NAME: "
+	sh $0 stop
+	while start-stop-daemon -K -t -q -n $NAME; do usleep 200000; done
+	sh $0 start
+	echo ""
+        ;;
+
+  status)
+	status
+	;;
+
+  *)
+	echo "Usage: $0 {start|stop|restart|reload|force-reload|status}"
+	exit 1
+	;;
+
+esac

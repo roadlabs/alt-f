@@ -1,0 +1,83 @@
+#! /bin/sh
+
+set -e
+
+DESC="Bittorrent client"
+NAME=transmission-daemon
+CONFF=/var/lib/transmission
+JSON=settings.json
+TYPE=user
+
+OPTS="--logfile /var/log/transmission.log --config-dir=$CONFF"
+
+TRANSMISSION_USER=transmission
+TRANSMISSION_GROUP=network
+
+status() {
+	if start-stop-daemon -K -t -q -x $NAME; then
+		echo "$NAME running"
+		return 0
+	else
+		echo "$NAME stopped"
+		return 1
+	fi
+}
+
+case "$1" in
+	start)
+		eval $(awk '/"download-dir"/ { \
+				gsub(",|\\\\", "", $2); printf "DOWNLOAD_DIR=%s;", $2 } \
+			/"watch-dir"/ { \
+				gsub(",|\\\\", "", $2); printf "WATCH_DIR=%s;", $2 } \
+			/"incomplete-dir"/ { \
+				gsub(",|\\\\", "", $2); printf "INCOMPLETE_DIR=%s;", $2 }' \
+			"$CONFF/$JSON")
+
+		if ! test -d "$DOWNLOAD_DIR" -a -d "$WATCH_DIR" -a -d "$INCOMPLETE_DIR"; then
+			echo "Directories does not exist, you must configure transmission first. Exiting."
+			exit 1
+		fi
+
+		network=$(hostname -i | awk -F. '{printf "%d.%d.%d.*", $1,$2,$3}')
+
+		sed -i -e 's|.*"rpc-whitelist":.*|    "rpc-whitelist": "127.0.0.1,'$network'",|' \
+			"$CONFF/$JSON"
+
+		chown $TRANSMISSION_USER:$TRANSMISSION_GROUP "$CONFF/$JSON"
+
+		echo -n "Starting $NAME: "
+		start-stop-daemon -S -q -b -p /var/run/transmission.pid -m \
+			--chuid $TRANSMISSION_USER:$TRANSMISSION_GROUP -x $NAME -- $OPTS
+		st=$?
+		if test $st = 0; then echo "OK."; else echo "Failed."; fi
+		exit $st
+		;;
+
+	stop)
+		echo -n "Stopping $NAME: "
+		start-stop-daemon -K -q -x $NAME
+		if test $? = 0; then echo "OK."; else echo "Failed."; fi
+		;;
+
+	status)
+		status
+		;;
+
+	reload)
+		start-stop-daemon -K -q -s SIGHUP -x $NAME
+		;;
+
+	restart|force-reload)
+		echo "Restarting $NAME: "
+		sh $0 stop
+		sleep 1
+		sh $0 start
+		echo ""
+		;;
+
+	*)
+		echo "Usage: $0 {start|stop|reload|restart|status|force-reload}" >&2
+		exit 1
+		;;
+esac
+

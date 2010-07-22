@@ -1,0 +1,8 @@
+Package: libogg
+Version: 1.1.4
+Description: Ogg is a multimedia container format, and the native file and stream format for the Xiph.org multimedia codecs.
+Architecture: arm
+Priority: optional
+Section: admin
+Source: http://www.xiph.org/ogg/
+Maintainer: jcard

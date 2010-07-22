@@ -1,0 +1,228 @@
+#!/bin/sh
+
+/bin/mount -t proc proc /proc
+/bin/mount -o remount,rw /
+/bin/mount -t usbfs usbfs /proc/bus/usb
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t tmpfs tmpfs /tmp
+#/bin/mount -t tmpfs -o size=64k,mode=0755 tmpfs /dev
+#/bin/mknod -m 666 /dev/null c 1 3
+#/bin/mknod -m 666 /dev/console c 5 1
+/bin/mount -t devpts devpts /dev/pts
+#/bin/mount -a
+#mount -t devtmpfs devtmpfs /dev # no obvious advantage
+
+for i in run log lock cache; do
+	mkdir /tmp/$i
+	ln -sf /tmp/$i /var/$i
+done
+
+mkdir -p /mnt /var/lib /var/spool/lpd
+echo > /etc/bay
+
+# what board revision? (Should be available in /proc/cpuinfo!)
+dmesg | awk '/Orion ID:/ {
+	if (match($3, "MV88F5181")) print "A1";
+	else if (match($3, "MV88F5182") &&
+		system("ls /sys/bus/i2c/drivers/g760a >/dev/null") == 0) print "B1";
+	else if (match($3, "MV88F5182")) print "C1";
+	else print "??";
+	}' > /tmp/board
+
+# temporary. syslog has not yet started, and hot.sh uses "logger",
+start-stop-daemon -S -q -x syslogd -- -D -m 0 -O /var/log/fsckboot.log
+
+# there is a problem here.
+# the kernel does not generate/buffer hot plug events before init starts,
+# but when init starts not all devices are yet enumerated by the kernel.
+#
+# give slow block devices an oportunity to appear. 5 seconds is
+# enough for 2 internal hdd, 2 external usb pens, and 1 external usb disk
+# but is 5 more seconds in boot time...
+sleep 5	
+
+# populate /dev
+/sbin/mdev -s
+
+# mount already attached disks/partitions, simulating kernel hotplug events
+# This "blocks" if some partitions needs to be fsck
+for i in /dev/sd?; do
+  if test -b $i; then
+        (cd /dev && ACTION=add DEVTYPE=disk PWD=/dev \
+        MDEV=$(basename $i) /usr/sbin/hot.sh)
+    for j in ${i}?; do
+	  if test -b $j; then
+		(cd /dev && ACTION=add DEVTYPE=partition PWD=/dev \
+		MDEV=$(basename $j) /usr/sbin/hot.sh)
+	  fi
+	done
+  fi
+done
+
+# install already attached printers, simulating kernel hotplug events
+# kernel might have already generated the events before this script runs
+for i in /dev/lp?; do
+ if test -c $i; then
+ 	mdev=$(basename $i)
+ 	if ! $(grep -q $mdev /etc/printcap); then
+       (cd /dev && ACTION=add PHYSDEVDRIVER=usblp \
+		MDEV=$mdev PWD=/dev /usr/sbin/hot.sh)
+	fi
+ fi
+done
+
+# "hotplug", mdev.conf registers /usr/sbin/hot.sh, mdev.seq sequences events
+# why can't this be done earlier? we risk to have duplicated hot.sh calls
+echo > /dev/mdev.seq
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+
+# set system clock from RTC, in UTC
+# kernel do it at boot time, but seems to not
+# wait for second change
+o="$(hwclock)"
+while test "$o" = "$(hwclock)"; do true; done
+hwclock -su
+
+# create rc* shortcuts to /etc/init.d/S??*
+ln -f /etc/init.d/rcall /sbin/rcall
+for i in /etc/init.d/S??*; do
+	f=$(basename $i)
+	ln -f /usr/sbin/rcscript /sbin/$(basename rc${f#S??})
+done
+
+# set a default hostname
+hostname -F /etc/hostname
+
+# setup loopback interface
+/sbin/ifconfig lo 127.0.0.1 up
+/sbin/route add -net 127.0.0.0 netmask 255.0.0.0 lo
+
+# don't load flash-saved defaults if "nodef" exists in kernel cmdline
+no_defaults=1
+if ! grep -q "nodef" /proc/cmdline; then
+	loadsave_settings -lf
+	no_defaults=$?
+fi
+
+# get an ip using the following priority:
+# 1st, use kernel cmd line ip= (kexec or fonz reloaded)
+# 2nd, use defaults stored in flash
+# 3d, try to read vendor sib.conf
+# 4th, try to use a dhcp server
+# 5th, find and use a non-used ip address from 192.168.1.245 to 240 range
+if grep -q "ip=" /proc/cmdline; then
+	echo "IP from kernel cmdline, kernel brings eth0 up"
+	cip="kip"
+	eval $(cat /proc/cmdline)
+	#domain=$(echo $ip | awk -F: '{ print substr($5, index($5,".") + 1, length($5))}')
+	hn="$(echo $ip | awk -F: '{ print $5 }')"
+	if test -n "$hn"; then
+		domain=$(echo $hn | cut -d"." -f2)
+		hostname $(echo $hn | cut -d"." -f1)
+	fi
+	ifconfig eth0 up
+elif test $no_defaults = "0"; then
+	echo "IP from flash-defaults"
+	cip="def"
+	ifup eth0
+else
+	res=$(loadsave_settings -rs)
+	if test $? = 0; then
+		echo "IP from sib.conf"
+		cip="sib"
+		eval $res
+		ifconfig eth0 up $ip netmask $mask
+		route add default gw $gw
+		echo "nameserver $ns1" >> /etc/resolv.conf
+		if test -n "$ns2"; then
+			echo "nameserver $ns2" >> /etc/resolv.conf
+		fi
+		hostname $host
+	else
+		ifconfig eth0 up
+		sleep 3
+		udhcpc -fqns /dev/null
+		if test $? = 0; then
+			echo "IP from dhcp server"
+			cip="dhcp"
+		else
+			echo "Fixed IP"
+			ifconfig eth0 0.0.0.0
+			sleep 3
+			for i in $(seq 254 -1 240); do
+				arping -Dw 2 192.168.1.$i
+				if test $? = 0; then break; fi
+			done
+			echo "using 192.168.1.$i"
+			ifconfig eth0 192.168.1.$i
+			cip="fip"
+		fi
+	fi
+fi
+
+# setup minimum network services (httpd is mandatory)
+case $cip in
+	"kip" | "fip" | "sib")
+		# set hostname/hostip	
+		hostip=$(ifconfig eth0 | awk '/inet addr/ { print substr($2, 6) }')
+		network=$(echo $hostip | awk -F. '{printf "%d.%d.%d.", $1,$2,$3}')
+		netmask=$(ifconfig eth0 | awk '/inet addr/ { print substr($4, 6) }')
+		gateway=$(route -n | awk '$1 == "0.0.0.0" { print $2 }')
+		broadcast=$(ifconfig eth0 | awk '/inet addr/ { print substr($3, 7) }')
+		mtu=$(ifconfig eth0 | awk '/MTU/{print substr($5,5)}')
+
+		if test "$(hostname)" = "(none)"; then
+			hostname -F /etc/hostname
+		fi
+		if test -z "$domain"; then
+			domain=$(awk '/(domain|search)/{print $2}' /etc/resolv.conf)
+		fi
+
+		echo "$hostip $(hostname).$domain $(hostname)" >> /etc/hosts
+		
+		# set httpd hosts allow/deny
+		echo A:$network >> /etc/httpd.conf
+
+		# set smb.conf hosts allow and workgroup
+		sed -i "s/hosts allow =.*$/hosts allow = 127. $network/" /etc/samba/smb.conf
+		sed -i "s/workgroup =.*$/workgroup = $domain/" /etc/samba/smb.conf
+
+		cat<<-EOF > /etc/network/interfaces
+			auto lo
+			iface lo inet loopback
+
+			auto eth0
+			iface eth0 inet static
+			address $hostip
+			netmask $netmask
+			broadcast $broadcast
+			gateway $gateway
+			mtu $mtu
+		EOF
+		;;
+
+	"dhcp")
+		cat<<-EOF > /etc/network/interfaces
+			auto lo
+			iface lo inet loopback
+
+			auto eth0
+			iface eth0 inet dhcp
+			client udhcpc
+		EOF
+		
+		ifup eth0
+		;;
+
+	"def")
+		hostname -F /etc/hostname
+		;;
+esac
+		
+# stop temporary syslog.
+start-stop-daemon -K -q -n syslogd
+
+# Start all executable init scripts in /etc/init.d
+# executing them in numerical order.
+rcall start
+
