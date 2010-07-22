@@ -38,6 +38,7 @@ Then,
 	cd alt-f-read-only
 	export BLDDIR=<dir> # where you want the build tree, e.g. ~/Alt-F-build
 	./mkprepare.sh
+	make O=$BLDDIR menuconfig # exit without making modifications (but save if asked)
 	make O=$BLDDIR
 
 and go for a two hours walk (old P4HT@3.2GHz/2GB) 
