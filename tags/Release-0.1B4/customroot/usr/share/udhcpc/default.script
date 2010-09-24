@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# udhcpc script edited by Tim Riker <Tim@Rikers.org>
+
+[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
+
+RESOLV_CONF="/etc/resolv.conf"
+[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+[ -n "$subnet" ] && NETMASK="netmask $subnet"
+
+case "$1" in
+	deconfig)
+		/sbin/ifconfig $interface 0.0.0.0
+		;;
+
+	renew|bound)
+		echo "udhcpc environment:"
+		env
+
+		if test -z "$domain"; then
+			domain=$(sed -n "s/workgroup = \(.*$\)/\1/p" /etc/samba/smb.conf)
+		fi
+
+		/sbin/ifconfig $interface $ip $BROADCAST $NETMASK
+
+		echo "Updating /etc/hosts"
+		fnm=$(hostname -f) >& /dev/null
+		if test $? = 0; then
+			sed -i '/\(^[^#].*\)\('$fnm'\)\(.*\)/s//'$ip'\t\2\3/' /etc/hosts
+		else
+			hname=$(hostname)
+			echo -e "$ip\t$hname.$domain\t$hname\n" >> /etc/hosts
+		fi
+
+		echo "Updating /etc/httpd.conf"
+		sed -i '/^A:.*\.$/d' /etc/httpd.conf
+		network=$(echo $ip | awk -F. '{printf "%d.%d.%d.", $1,$2,$3}')
+		echo  "A:$network" >> /etc/httpd.conf
+
+		echo "Updating /etc/samba/smb.conf"
+		sed -i "s/workgroup =.*$/workgroup = $domain/" /etc/samba/smb.conf
+		sed -i "s/hosts allow =.*$/hosts allow = 127. $network/" /etc/samba/smb.conf
+		
+		if test -n "$router"; then
+			echo "Updating default route"
+			while route del default gw 0.0.0.0 dev $interface ; do
+				:
+			done
+
+			for i in $router ; do
+				route add default gw $i dev $interface
+			done
+		fi
+
+		echo "Updating /etc/resolv.conf"
+		echo -n > $RESOLV_CONF
+		echo search $domain >> $RESOLV_CONF
+		for i in $dns ; do
+			echo adding dns $i
+			echo nameserver $i >> $RESOLV_CONF
+		done
+		;;
+esac
+
+exit 0

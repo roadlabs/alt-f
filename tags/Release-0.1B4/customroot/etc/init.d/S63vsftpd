@@ -1,0 +1,38 @@
+#! /bin/sh
+
+set -e
+
+DESC="vsftpd"
+NAME=vsftpd
+
+CERT=/etc/ssl/certs/vsftpd.pem
+CONF=/etc/vsftpd.conf
+
+. $(dirname $0)/common
+
+sinit() {
+	if test -f $CONF; then
+		. $CONF
+		if ! test -d "$secure_chroot_dir"; then
+			mkdir -p "$secure_chroot_dir"
+		fi
+		if test "$ssl_enable" = "YES" -a ! -f $CERT; then
+			tf=$(mktemp -t)
+			echo -e ".\n.\n.\n.\n.\n$(hostname)\n.\n" > $tf
+			openssl req -x509 -nodes -days 3650 -newkey rsa:1024 -keyout $CERT -out $CERT < $tf  2> /dev/null
+			rm -f $tf
+		fi
+	fi
+}
+
+case "$1" in
+	start)
+		sinit
+		start $NAME
+		;;
+	stop) stop $NAME ;;
+	status) status $NAME ;;
+	init) sinit ;;
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart|init" ;;
+esac

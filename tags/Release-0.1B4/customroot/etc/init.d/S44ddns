@@ -1,0 +1,25 @@
+#! /bin/sh
+
+set -e
+
+DESC="Dynamic DNS update daemon"
+TYPE=net
+NAME=inadyn
+CONF=/etc/inadyn.conf
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		if ! test -f $CONF; then
+			echo "Starting $NAME: No $CONF configuration file, fail"
+			exit 1
+		fi
+		start $NAME
+		;;
+	stop)	stop $NAME ;;
+	status)	status $NAME ;;
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac
+

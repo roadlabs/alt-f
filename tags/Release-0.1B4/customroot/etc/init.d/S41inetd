@@ -1,0 +1,25 @@
+#! /bin/sh
+
+set -e
+
+DESC="Internet Services Daemon (don't disable!)"
+TYPE=net
+NAME=inetd
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		rcdropbear init
+		rcvsftpd init
+
+#		start-stop-daemon -S -q -b -x $NAME
+#		omsg $?
+		start $NAME
+		;;
+	stop) stop $NAME ;;
+	restart) restart $NAME ;;
+	reload) reload $NAME ;;
+	status) status $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac

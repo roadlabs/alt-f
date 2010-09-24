@@ -1,0 +1,35 @@
+#! /bin/sh
+
+set -e
+
+DESC="Combined DHCP/DNS/TFTP Server"
+TYPE=net
+NAME=dnsmasq
+
+FLG_MSG="#!in use by dnsmasq, don't change"
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		if ! $(grep -q "^$FLG_MSG" /etc/resolv.conf); then
+			cp /etc/resolv.conf /etc/dnsmasq-resolv
+			sed -i -e 's/^nameserver/#!&/' /etc/resolv.conf
+			echo -e "$FLG_MSG\nnameserver 127.0.0.1" >> /etc/resolv.conf
+		fi
+		if ! test -f /etc/dnsmasq-hosts; then
+			touch /etc/dnsmasq-hosts
+		fi 
+		start $NAME
+		;;
+	stop)
+		if $(grep -q "$FLG_MSG" /etc/resolv.conf); then
+			cp /etc/dnsmasq-resolv /etc/resolv.conf
+		fi
+		stop $NAME
+		;;
+	restart) restart $NAME ;;
+	reload) reload $NAME ;;
+	status) status $NAME ;;	
+	*) usage $0 "start|stop|status|restart" ;;
+esac
