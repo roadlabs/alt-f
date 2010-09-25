@@ -94,8 +94,10 @@ Then:
   Read the file, look for obvious errors and try to correct them; if
   asking for help, post the file contents.
   One of the more common problems during the 1-b) step in the Installation
-  Details above is lack of free memory. If you are using ffp, run Alt-F
-  right after rebooting your box.
+  Details above is lack of free memory.
+  If you are using ffp, run Alt-F right after rebooting your box;
+  the fun_plug script stops all started ffp services by running
+  "/ffp/etc/rc stop", but not any service you migh have started mannualy.
 
 3-If you find the alt-f.log file, then step 2-b) in the Installation
   Details above has run OK, and there must exists some other problem.
