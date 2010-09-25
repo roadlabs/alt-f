@@ -21,13 +21,14 @@ How to install:
 
 3-If you have ffp,
   3-a) Just want to try Alt-F once:
-    download Alt-F-<version>.tar and fun_plug, rename run_plug to, e.g,
-    alt-f.sh, put them in your box root directory, and call alt-f.sh from
-    the shell.
-    Your ffp directory, if found in the root directory, will be recognized
-    and used by Alt-F. The ffp init script will be executed by Alt-F on boot,
-    but you should disable all non needed ffp init scripts, and only keep
-    those that provide services that Alt-F don't have.
+    Download Alt-F-<version>.tar and fun_plug, rename the downloaded
+    fun_plug to, e.g, alt-f.sh, put them in your box root directory, and
+    execute alt-f.sh from the shell.
+
+    Your ffp directory, if found in the root directory of any filesystem
+    of your disk, will be recognized and used by Alt-F. The ffp init script
+    will be executed by Alt-F on boot, but you should disable all non needed
+    ffp init scripts, and only keep those that provide services that Alt-F don't have.
     Alt-F binaries have precedence over ffp ones.
 
   3-b) You want to always use it:
@@ -51,7 +52,7 @@ a two step process.
 
 1-First, the fun_plug script runs, terminating a set of well know
   processes in order to make enough free memory available for the second
-  step; during this first step a log file named alt-f-reloaded.sh is
+  step; during this first step a log file named alt-f-reloaded.log is
   created, and you can find it in the root directory of your box disk.
 
 2-The second step is itself a two phase process:
@@ -88,7 +89,7 @@ Then:
   root directory, download everything again and restart -- the fun_plug
   script didn't run OK (step 1 in the Installation Details above)
 
-2-If you find the alt-f-reloaded.log file, but not a alt-f.sh file, then
+2-If you find the alt-f-reloaded.log file, but not a alt-f.log file, then
   Alt-F didn't boot (step 2-b) in the Installation Details above).
   Read the file, look for obvious errors and try to correct them; if
   asking for help, post the file contents.
@@ -96,7 +97,7 @@ Then:
   Details above is lack of free memory. If you are using ffp, run Alt-F
   right after rebooting your box.
 
-3-If you find the alt-f.sh file, then step 2-b) in the Installation
+3-If you find the alt-f.log file, then step 2-b) in the Installation
   Details above has run OK, and there must exists some other problem.
   Examine the file to see if there are any obvious errors, and post it
   when asking for help.
