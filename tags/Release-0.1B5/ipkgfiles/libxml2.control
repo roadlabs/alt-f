@@ -1,0 +1,8 @@
+Package: libxml2
+Version: 2.7.3
+Description: XML C parser and toolkit of Gnome
+Architecture: arm
+Priority: optional
+Section: admin
+Source: http://xmlsoft.org/
+Maintainer: jcard

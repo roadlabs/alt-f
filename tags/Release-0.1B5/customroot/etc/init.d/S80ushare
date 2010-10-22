@@ -1,0 +1,62 @@
+#!/bin/sh -e
+
+NAME=ushare
+DAEMON=/usr/bin/$NAME
+DESC="GeeXboX uShare, A free UPnP A/V & DLNA Media Server for Linux"
+TYPE=user
+
+PIDFILE=/var/run/$NAME.pid
+CONFIGFILE=/etc/$NAME.conf
+USHARE_USER=ushare
+USHARE_GROUP=multimedia
+#USHARE_OPTIONS=
+
+. $(dirname $0)/common
+
+checkpid() {
+	[ -e $PIDFILE ] || touch $PIDFILE
+}
+
+check_shares() {
+	if test -r "$CONFIGFILE"; then
+		USHARE_DIR="$(awk -F= '/^USHARE_DIR/{print $2}' $CONFIGFILE)"
+		if test -n "$USHARE_DIR"; then
+			return 0
+		fi
+	fi
+	return 1
+}
+
+case "$1" in
+	start)
+		echo -n "Starting $NAME: "
+		if ! $(check_shares); then
+			echo "No shares available, exiting"
+			exit 1
+		else
+			checkpid
+			start-stop-daemon --start --quiet --background --oknodo \
+				--chuid $USHARE_USER:$USHARE_GROUP \
+				--make-pidfile --pidfile $PIDFILE \
+				--exec $DAEMON -- $USHARE_OPTIONS
+			omsg $
+		fi
+		;;
+
+	stop)
+		echo -n "Stopping $NAME: "
+		start-stop-daemon --stop --signal 2 --quiet --oknodo --pidfile $PIDFILE
+		omsg $?
+		;;
+
+	status) status $NAME ;;
+	
+	reload) reload $NAME
+#	echo -n "Reloading $NAME: "
+#	start-stop-daemon --stop --signal 1 --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON
+#	omsg $?
+		;;
+
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart|reload" ;;
+esac

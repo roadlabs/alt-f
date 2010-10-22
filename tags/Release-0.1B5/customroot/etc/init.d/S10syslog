@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Starts syslog.
+#
+
+DESC="System and Kernel log Daemon"
+NAME=syslogd
+NAME1=klogd
+TYPE=sys
+
+umask 077
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		start $NAME -- -C -D -m 0
+		start $NAME1
+		;;
+	stop)
+		stop $NAME1
+		stop $NAME
+		;;
+	status)
+		status $NAME
+		;;
+	restart)
+		restart $NAME
+		;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac
