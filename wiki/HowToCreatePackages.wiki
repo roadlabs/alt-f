@@ -1,0 +1,125 @@
+#summary How to Create Disk Installable Packages
+
+{{{
+
+*Work in progress, Not yet finished, spellchecked, reviewed, ...*
+
+Creating Disk Installable Packages, or packages, as they will be called from here on,
+is a two step process.
+
+A-setup a BuildRoot package
+===========================
+
+writing a package/<pkg_name>/<pkg_name>.mk makefile and a package/<pkg_name>/Configure.in configuration file.
+
+You have to add the new package to package/Config.in
+
+There are two kinds of BuildRoot packages:
+	-autotools based packages, whose makefiles are very easy to write -- you should always try this first, if the package has a configure script;
+	-a normal package, where you must write the rules of a set of well defined targets
+
+In docs/buildroot.html you will find some details about this process, but only
+covers the trivial (demo) situations.
+Take a look at packages/Makefile.autotools.in -- the initial comments are worth
+reading, and you will understand the targets that you must write and the available
+hooks.
+And, of course, look at the examples in the packages directory.
+
+To help you write and test the package makefile, there are some non-obvious
+target that you can use at thew command line:
+
+	make O=$BLDDIR pkgname-source
+	make O=$BLDDIR pkgname-configure
+	make O=$BLDDIR pkgname-build
+	make O=$BLDDIR pkgname-install
+	make O=$BLDDIR pkgname
+
+But this subject is out of scope.
+
+B-Setup a Alt-F package
+=======================
+
+In this step you have to know the list of files of your package, and this
+is the most difficult step.
+
+Fortunatelly enough the mkpkg.sh scripy simplifies things a lot:
+
+# ./mkpkg.sh 
+usage: mkpkg.sh <package> |
+        -rm <package> (remove from rootfs files from <pkg> |
+        -ls <package> (list package file contents) |
+        -set (store current rootfs file list) |
+        -clean (remove new files since last -set) |
+        -diff (show new files since last -set) |
+        -force <package> (force create package. You must first create the .control file) |
+        -setroot (creates rootfs base file list) |
+        -cleanroot (remove all files not in rootfs base file list) |
+        -index (create ipkg package index) |
+        -all (recreates all packages in ipkfiles dir) |
+        -help
+
+Before starting step A above, and already having a ready rootfs, you should run
+
+	./mkpkg.sh -setroot
+
+This creates a file with the contents of the rootfs, for future and is a definitive reference. You should next run
+
+	./mkpkg.sh -set
+
+that does the same thing, using a different file, but has a more transient state.
+
+You should then configure BuildRoot with you new package, and do the usual
+
+	make O=$BLDDIR
+
+At the end,
+
+	./mkpkg.sh -diff
+
+shows you the new files in the rootfs since the last "-set". If it is not OK, do
+
+	./mkpkg.sh -clean
+
+and the new files will be deleted from the rootfs, as a "-diff" will show you.
+
+After cycling over -diff and -clean and the package makefile, you are ready to
+create the package filelist and description. For that execute
+
+	./mkpkg.sh pkgname
+
+That creates two files in the ipkgfiles directory, pkgname.lst and pkgname.control, and
+in the pkgs directory the package itself, pkgname_version_arm.ipk
+
+You should verify that pkgname.lst contains the desired files, and you should edit
+pkgname.control, fixing the package descrition, the correct URL source,
+and the correct dependencies. You should than do again a
+
+	./mkpkg.sh pkgname
+
+This is basically all. If you want to make the package available for others to
+install, using a http accesible directory, you should also run
+
+	./mkpkg.sh -index
+
+that creates a Packages file in the pkgs directory.
+If you now copy the *.ipk and Packages file to an http accessible directory and
+announce the URL, you have just created a "feed" that others can use.
+
+The dependencies line in the pkgname.control file is very importante. It should
+contain a coma separeted list of packages that this package depends on.
+ipkg, which is Alt-F package manager, install first recursively the dependencies,
+and only after that the desired package.
+
+You know the dependencies because you had to specify then in the package makefile
+and Config.in. mkpkg.sh extracts that info from these files, but it is often incomplete.
+
+There are other control files: pkgname.{postinst|postrm|conffiles|...} that are
+executable shell scripts to be run after an install or removal.
+
+For more details on those, look at the examples and also at
+
+http://handhelds.org/moin/moin.cgi/Ipkg
+http://handhelds.org/moin/moin.cgi/BuildingIpkgs
+http://buffalo.nas-central.org/wiki/Overview_of_the_ipkg_package_management_system
+
+}}}
