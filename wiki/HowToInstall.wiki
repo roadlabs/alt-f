@@ -55,7 +55,7 @@ a two step process.
   step; during this first step a log file named alt-f-reloaded.log is
   created, and you can find it in the root directory of your box disk.
 
-2-The second step is itself a two phase process:
+2-The second step is in itself a two phase process:
   a) First, a new kernel and root filesystem is loaded into RAM and the
      kernel starts running; this phase is where things most often might fail,
      and there is no possibility of watching or logging what is going on
@@ -69,13 +69,30 @@ a two step process.
 Diagnosing Installation Problems
 ================================
 
-0-If you can't access Alt-F web home page, before pulling the power cord
-  you can try to see if it is running by pressing and *keep* pressing the
-  power button.
+0-The blue power led keeps blinking with a fast *earthbeat* rate,
+  the blue disk leds blinks randomly and you can't access the box
+  neither through telnet, ssh, or its web page, but you can ping it.
+  This means that fsck is running and checking your disk partitions.
+  This happens when the box is not cleanly shutdown, what happens
+  by default with the vendors firmware.
+  During the disk checking Alt-F stops booting, and you have to wait until
+  the disk checking finishes, at what time the blue power leds stops blinking
+  with the heartbeat pace and stays on steadily.
+  It can take a very long time for fsck to finish, depending on the disks
+  capacity and usage. As an example, checking an almost empty 230MB disk
+  takes about 5 minutes.
+  On poweroff or reboot, Alt-F will properly unmount the disks, so the check/fix
+  step will not happen at the second and subsequent reboots.
 
-  If Alt-F is running, after three seconds the right led start flashing,
-  and then the left led. So, Alt-F is running, but you can't communicate
-  with it -- there are network problems, see 3) below.
+1-If the power led is not blinking with the heartbeat pace and you can't access
+  Alt-F web home page, before pulling the power cord you can try to see if Alt-F
+  is running by pressing and *keep* pressing the power button.
+
+  If Alt-F is running, after three seconds the right orange led start flashing,
+  and three seconds later then the orange left led; three seconds latter the
+  the leds stop blinking and you can release the power button.
+  This means that, Alt-F is running, but you can't communicate with it --
+  there are network problems, see 3) below.
 
   You can reboot the box by releasing the power button while the right led
   is flashing, or power it off if releasing the power button when the left
@@ -83,6 +100,7 @@ Diagnosing Installation Problems
 
 If the above does not work, you have to restart the box by pulling the
 power cord and reboot the box, which returns to the vendor's software.
+
 Then:
 
 1-If you don't find a file called alt-f-reloaded.log in your box disk
@@ -97,16 +115,14 @@ Then:
   Details above is lack of free memory.
   If you are using ffp, run Alt-F right after rebooting your box;
   the fun_plug script stops all started ffp services by running
-  "/ffp/etc/rc stop", but not any service you migh have started mannualy.
+  "/ffp/etc/rc stop", but not any service you might have started manually.
 
 3-If you find the alt-f.log file, then step 2-b) in the Installation
   Details above has run OK, and there must exists some other problem.
   Examine the file to see if there are any obvious errors, and post it
   when asking for help.
 
-  The most common problem here are network problems. Remember, you can
-  only communicate with Alt-F if the box is connected to a gigabit
-  switch/router or computer network card. 
+  The most common problem here are network problems.
 
   If your box is using DHCP, assign it a static IP instead, using the
   vendor's web page. The fun_plug script makes Alt-F use the IP the box is
@@ -116,10 +132,6 @@ Then:
 
   You can also try to ping, telnet, ssh or ftp the box, post the results.
 
-  As a last-resort, you can try to comment, in the fun_plug file, the line
-  that says "KIP=yes". Use a unix-compatible editor, like notpad++.
-  Discovering the IP used by Alt-F in this case can be difficult, read the
-  HowToUse wiki.
 
 The reloading process
 =====================
