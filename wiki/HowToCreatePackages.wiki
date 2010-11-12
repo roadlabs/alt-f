@@ -10,7 +10,7 @@ is a two step process.
 A-setup a BuildRoot package
 ===========================
 
-writing a package/<pkg_name>/<pkg_name>.mk makefile and a package/<pkg_name>/Configure.in configuration file.
+Writing a package/<pkg_name>/<pkg_name>.mk makefile and a package/<pkg_name>/Configure.in configuration file.
 
 You have to add the new package to package/Config.in
 
@@ -25,8 +25,9 @@ reading, and you will understand the targets that you must write and the availab
 hooks.
 And, of course, look at the examples in the packages directory.
 
-To help you write and test the package makefile, there are some non-obvious
-target that you can use at thew command line:
+To help you write and test the package makefile, without doing a full build (and
+if you want) without installing the package in the root filesystem, there are some
+ non-obvious target that you can use at the command line:
 
 	make O=$BLDDIR pkgname-source
 	make O=$BLDDIR pkgname-configure
@@ -58,17 +59,20 @@ usage: mkpkg.sh <package> |
         -all (recreates all packages in ipkfiles dir) |
         -help
 
-Before starting step A above, and already having a ready rootfs, you should run
+Before starting step A above, and after doing a full build, with a clean and ready
+root filesystem, you should run
 
 	./mkpkg.sh -setroot
 
-This creates a file with the contents of the rootfs, for future and is a definitive reference. You should next run
+This creates a file with the contents of the rootfs for future use,
+and is a definitive reference. You should next run
 
 	./mkpkg.sh -set
 
 that does the same thing, using a different file, but has a more transient state.
 
-You should then configure BuildRoot with you new package, and do the usual
+You should then configure BuildRoot with your new package, procedure A above, 
+and do the usual
 
 	make O=$BLDDIR
 
@@ -87,11 +91,11 @@ create the package filelist and description. For that execute
 
 	./mkpkg.sh pkgname
 
-That creates two files in the ipkgfiles directory, pkgname.lst and pkgname.control, and
-in the pkgs directory the package itself, pkgname_version_arm.ipk
+This creates two files in the ipkgfiles directory, pkgname.lst and pkgname.control,
+and in the pkgs directory the package itself, pkgname_version_arm.ipk
 
-You should verify that pkgname.lst contains the desired files, and you should edit
-pkgname.control, fixing the package descrition, the correct URL source,
+You should verify that pkgname.lst contains the desired package files, and you should
+ edit pkgname.control, fixing the package descrition, the correct URL source,
 and the correct dependencies. You should than do again a
 
 	./mkpkg.sh pkgname
@@ -103,12 +107,12 @@ install, using a http accesible directory, you should also run
 
 that creates a Packages file in the pkgs directory.
 If you now copy the *.ipk and Packages file to an http accessible directory and
-announce the URL, you have just created a "feed" that others can use.
+announce its URL, you have just created a "feed" that others can use.
 
 The dependencies line in the pkgname.control file is very importante. It should
 contain a coma separeted list of packages that this package depends on.
-ipkg, which is Alt-F package manager, install first recursively the dependencies,
-and only after that the desired package.
+ipkg, which is the Alt-F package manager, first recursively installs the dependencies
+packages, and only after that the new desired package.
 
 You know the dependencies because you had to specify then in the package makefile
 and Config.in. mkpkg.sh extracts that info from these files, but it is often incomplete.
