@@ -2,7 +2,7 @@
 
 {{{
 
-To use Alt-F you can use its "lame" administering web pages, directing a
+To use Alt-F you can use its administering web pages, directing a
 web browser to the box default IP.
 
 When booting, and to assign itself an IP, Alt-F tries to first use a IP supplied
@@ -59,9 +59,9 @@ the administrative tasks. One of the most likely causes for failures in
 the web pages are spaces in filenames and browser caching. Please send a
 report and a patch.
 
-If you have a serial connection, you can see the boot log and login as
-root (without password if none was setup). Use the "passwd" command to
-set a new (volatile) root password.
+If you have a serial port, you can see the boot log and you are automaticaly
+logged in, no password is asked.
+Use the "passwd" command to set a new (volatile) root password.
 
 The first time that you use the web pages or change the password, you
 will be guided through a small set of pages, being prompted for a few
@@ -76,14 +76,13 @@ a new RSA/DSA key pair is generated for dropbear usage, and your ssh
 client will complain.
 
 After you save the settings in flash, Alt-F will use them on the next reboot,
-so if you set a different IP than before in the host page, be sure that you
-write it down, or you will be lost.
+so if you have setup a new IP in the host page, be sure that you write it down.
 
 When a new disk is detected, either internal or USB connected, either at
 boot or by hot-plugging,  Alt-F will first check and if necessary fix all
 its filesystems, either if they are "dirty" or if "it's time" to do it.
 A filesystem is dirty if the box was not properly shutdown or rebooted,
-which is what happens with the vendor's firmware.
+that is what happens with the vendor's firmware.
 Thus, on its first boot, Alt-F will find all filesystems dirty and will do
 a lengthly check/fix -- this can take hours on very large disks. During the
 check/fix, the led of the disk which is being checked will flash, and the
@@ -91,6 +90,8 @@ power led will flash with an "heartbeat" rhythm. On poweroff or reboot, Alt-F
 will properly unmount the disks, so the check/fix step will not happen at
 the second and subsequent reboots. However, a check/fix is done every M mounts
 or after D days since the last check.
+In the web status page, you are warned that is time for you to start a filesystem
+check, in order to avoid the lengthly check at the next boot.
 
 After checking/fixing, Alt-F will mount all the disks filesystems in
 the directory /mnt/<name>, where <name> can be either the disk partition
@@ -104,17 +105,12 @@ administering  web pages (not for NTFS, at least until you install the
 ntfsprogs package).
 Ext2/3/4/VFAT/NTFS/ISO9660 filesystems are recognized.
 
-RAID-0/1/5 (using an external USB disk) and linear RAID are recognized,
+RAID-0,1 and 5 (using an external USB disk) and linear RAID (JBD) are recognized,
 assembled and mounted when a disk is inserted or detected.
-There is yet no RAID setup web page, you have to create them by hand; this
-will change, of course, by now Alt-F only assembles and mounts any RAID
-devices it founds.
-RAID filesystems created by the vendor firmware are not automatically mounted,
-only assembled (otherwise the vendor firmware will not recognize it as RAID at
-the next boot). You can however manually mount and use them.
 
 The leds will be steady orange when a RAID device is degraded, and will
-flash in  orange during resync or rebuild.
+flash in  orange during resync or rebuild. In the status web page you can see
+the expected time for completion.
 
 When mounting filesystems, Alt-F will look for a directory called "ffp"
 in the filesystem root, and if found a link is created to it at the
@@ -124,15 +120,16 @@ remove ffp packages.
 If a directory name "Users" is found, will be linked to /home.
 
 Alt-F also looks for a directory called Alt-F. If found it will be
-aufs-mounted on top of root, /, shadowing it. This means that any files
+aufs-mounted on top of root, "/", shadowing it. This means that any files
 (including executables) existing there will be used instead. This is
 likely to change, and poses some pathological problems, so don't use it.
-Mostly DON'T directly change or add nothing in that directory.
+Mostly DON'T change or add nothing in that directory, or the box
+might crash.
  
 USB attached printers will also be recognized, and a rudimentary lpd
 spooler used for them. They can also be used with samba.
 
-Disks will, by default, be set to sleep after one hour of inactivity;
+Disks will, by default, be set to sleep after 20 minuts of inactivity;
 when this happens, the corresponding orange led will slowly flash.
 
 If you keep the box front button pressed for more than 3 seconds, the
@@ -144,7 +141,7 @@ released, the box will do an ordered shutdown.
 The reboot and power-down procedures cleanly stop all processes, unmount
 filesystems, and stop raid devices.
 Internal or external disks can be hot-removed after being "ejected"
-using the "eject" command or "Disk utils" web page.
+using the "eject" command or the "Disk utils" web page.
 
 Please note that RAID hot-plugging is not yet fully functional; when
 devices are inserted, it works fine, they are incrementally assembled
@@ -154,7 +151,6 @@ reinserted, hot-plugging might not work properly.
 Also notice that because the arrays are incrementaly added and mounted
 as soon as possible, they must have the "intent bitmap" active,
 otherwise a rsync happens when the second (on raid-1) or third (on
-raid-5) device is inserted.
-This is work in progress, and hopefully in 0.1B4 it will be solved.
+raid-5) device is inserted. This is work in progress.
 
 }}}
