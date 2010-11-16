@@ -6,14 +6,13 @@ How to install:
 ===============
 
 1-If you don't have ffp or a fun_plug file in your box root directory,
-  and you don't then even know what that means,
-  just download "Alt-F-<version>.tar" and "fun_plug" into your box root
-  directory, make sure that "fun_plug" has execution permission and reboot.
-  This will only work for one reboot; if you want to try again, you must
-  set the execution permissions of fun_plug again.
-  This is deliberate, you can override it by editing fun_plug and commenting
-  the line on top that says ONCE. Without this, if something goes wrong,
-  then your box would reboot endlessly!
+  and you don't even know what that means, just download "Alt-F-<version>.tar"
+  and "fun_plug" into your box root directory, make sure that "fun_plug" has
+  execution permission and reboot.
+  This will only work once; if you want to try again, you must set the execution
+  permissions of fun_plug again.
+  This is deliberate, you can override it by editing (with a unix-compatible editor)
+  fun_plug and commenting the line on top that says ONCE. Without this, if something goes wrong your box would reboot endlessly!
 
 2-If you have a fun_plug file, but don't have ffp, than save your current
   fun_plug file, and proceed as in 1 above. 
@@ -23,7 +22,7 @@ How to install:
   3-a) Just want to try Alt-F once:
     Download Alt-F-<version>.tar and fun_plug, rename the downloaded
     fun_plug to, e.g, alt-f.sh, put them in your box root directory, and
-    execute alt-f.sh from the shell.
+    execute alt-f.sh from the shell command line.
 
     Your ffp directory, if found in the root directory of any filesystem
     of your disk, will be recognized and used by Alt-F. The ffp init script
@@ -37,10 +36,10 @@ How to install:
 4-You want to replace the stock firmware, flashing Alt-F on the box:
   You must first follow one of the above steps and be already running Alt-F.
   Download Alt-F-<version>.bin and use the Alt-F firmware upgrade web page to
-  flash it. You can't flash Alt-F with the vendor firmware. This is deliberate.
+  flash it. You can't flash Alt-F with the vendor's firmware. This is deliberate.
   Alt-F firmware upgrade web page can flash the vendor supplied firmware, so
   you can always do a "downgrade". DLink 1.07 and 1.08, as well as Conceptronic
-  1.05b5 firmware was flashed this way *** ON A REV-B1 BOARD ***
+  1.05b5 firmware was flashed this way *** ON A REV-B1 BOARD ***.
   OF COURSE THIS IS DANGEROUS, AND CAN TURN YOUR BOX INTO AN EXPENSIVE BLACK
   BRICK IN YOUR DESKTOP. YOU HAVE BEEN WARNED.
 
@@ -79,8 +78,8 @@ Diagnosing Installation Problems
   the disk checking finishes, at what time the blue power leds stops blinking
   with the heartbeat pace and stays on steadily.
   It can take a very long time for fsck to finish, depending on the disks
-  capacity and usage. As an example, checking an almost empty 230MB disk
-  takes about 5 minutes.
+  capacity and usage. As an example, checking a 88% full 230GB disk
+  takes about 12 minutes.
   On poweroff or reboot, Alt-F will properly unmount the disks, so the check/fix
   step will not happen at the second and subsequent reboots.
 
@@ -88,14 +87,14 @@ Diagnosing Installation Problems
   Alt-F web home page, before pulling the power cord you can try to see if Alt-F
   is running by pressing and *keep* pressing the power button.
 
-  If Alt-F is running, after three seconds the right orange led start flashing,
-  and three seconds later then the orange left led; three seconds latter the
+  If Alt-F is running, after three seconds the right orange led starts flashing,
+  and three seconds later the orange left led; three seconds latter the
   the leds stop blinking and you can release the power button.
-  This means that, Alt-F is running, but you can't communicate with it --
+  This means that Alt-F is running, but you can't communicate with it --
   there are network problems, see 3) below.
 
   You can reboot the box by releasing the power button while the right led
-  is flashing, or power it off if releasing the power button when the left
+  is flashing, or power it off releasing the power button when the left
   led is flashing.
 
 If the above does not work, you have to restart the box by pulling the
@@ -112,10 +111,11 @@ Then:
   Read the file, look for obvious errors and try to correct them; if
   asking for help, post the file contents.
   One of the more common problems during the 1-b) step in the Installation
-  Details above is lack of free memory.
+  Details above is lack of free memory. Stop all box services and vendor
+  supplied addons.
   If you are using ffp, run Alt-F right after rebooting your box;
   the fun_plug script stops all started ffp services by running
-  "/ffp/etc/rc stop", but not any service you might have started manually.
+  "/ffp/etc/rc stop", but not any service that you might have started manually.
 
 3-If you find the alt-f.log file, then step 2-b) in the Installation
   Details above has run OK, and there must exists some other problem.
@@ -132,24 +132,24 @@ Then:
 
   You can also try to ping, telnet, ssh or ftp the box, post the results.
 
-
 The reloading process
 =====================
 
-By default, when booting, the DNS-323 will search for a file named fun_plug in the
-hard disk users directory, usually Volume_1; if it finds it and the file has
-the executable attribute set, it will be executed. Thanks D-Link!
+By default, when booting, the DNS-323 firwmare will search for a file named
+fun_plug in the hard disk users directory, usually Volume_1. If it finds it,
+and the file has the executable attribute set, it will be executed. Thanks D-Link!
 
 When executed (read the fun_plug file, its readable, but DON'T CHANGE OR SAVE IT),
 the Alt-F fun_plug script will look for a file named Alt-F-<version>.tar and will
 extract it to a directory named alt-f; it will then try to terminate all running 
 processes, unmount (or set as read-only) all filesystems, and load and run a new
-kernel and filesystem image, the zImage and rootfs.arm.cpio* files).
+kernel and filesystem image, the zImage and rootfs.arm.cpio* files that you can
+find in the created alt-f directory).
 This critical process is done using fonz "reloaded" kernel modules,
 read http://wiki.dns323.info/howto:ffp-reloaded http://www.inreto.de/dns323/ or
 http://forum.dsmg600.info/viewforum.php?id=3 for more details.
 
-So,after rebooting, the Alt-F-<version>.tar file will disappear and a new directory
+So, after rebooting, the Alt-F-<version>.tar file will disappear and a new directory
 name alt-f will appear.
 
 Uninstalling

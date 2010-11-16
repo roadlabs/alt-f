@@ -129,6 +129,7 @@ libraries is:
 
   rm $BLDDIR/project_build_arm/dns323/autotools-stamps/* # but not the gcc_libs_target_installed file
   rm -rf $BLDDIR/project_build_arm/dns323/root/* # but not the lib directory
+   nor the usr/lib/libstdc++.so* files
   rm $BLDDIR/project_build_arm/dns323/.root
   make O=$BLDDIR
 

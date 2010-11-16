@@ -83,15 +83,17 @@ boot or by hot-plugging,  Alt-F will first check and if necessary fix all
 its filesystems, either if they are "dirty" or if "it's time" to do it.
 A filesystem is dirty if the box was not properly shutdown or rebooted,
 that is what happens with the vendor's firmware.
-Thus, on its first boot, Alt-F will find all filesystems dirty and will do
-a lengthly check/fix -- this can take hours on very large disks. During the
-check/fix, the led of the disk which is being checked will flash, and the
-power led will flash with an "heartbeat" rhythm. On poweroff or reboot, Alt-F
-will properly unmount the disks, so the check/fix step will not happen at
-the second and subsequent reboots. However, a check/fix is done every M mounts
-or after D days since the last check.
-In the web status page, you are warned that is time for you to start a filesystem
-check, in order to avoid the lengthly check at the next boot.
+
+Thus, on its first boot, Alt-F will find all filesystems dirty and will
+do a lengthly check/fix -- this can tens of minutes on very large disks
+(12 minutes on an 88% full 230GB disk). During the check/fix, the led of
+the disk which is being checked will flash, and the power led will flash
+with an "heartbeat" rhythm. On poweroff or reboot, Alt-F will properly
+unmount the disks, so the check/fix step will not happen at the second
+and subsequent reboots. However, a check/fix is done every M mounts or
+after D days since the last check. In the web status page, you are
+warned that is time for you to start a filesystem check, in order to
+avoid the lengthly check at the next boot.
 
 After checking/fixing, Alt-F will mount all the disks filesystems in
 the directory /mnt/<name>, where <name> can be either the disk partition
