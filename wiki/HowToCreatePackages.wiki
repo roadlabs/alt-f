@@ -4,6 +4,9 @@
 
 *Work in progress, Not yet finished, spellchecked, reviewed, ...*
 
+In order to follow the procedures outlined in this page, you must be able to build
+Alt-F yourself, so start with the HowToBuild wiki page.
+
 Creating Disk Installable Packages, or packages, as they will be called from here on,
 is a two step process.
 
@@ -110,7 +113,7 @@ If you now copy the *.ipk and Packages file to an http accessible directory and
 announce its URL, you have just created a "feed" that others can use.
 
 The dependencies line in the pkgname.control file is very importante. It should
-contain a coma separeted list of packages that this package depends on.
+contain a coma separated list of packages that this package depends on.
 ipkg, which is the Alt-F package manager, first recursively installs the dependencies
 packages, and only after that the new desired package.
 
@@ -125,5 +128,108 @@ For more details on those, look at the examples and also at
 http://handhelds.org/moin/moin.cgi/Ipkg
 http://handhelds.org/moin/moin.cgi/BuildingIpkgs
 http://buffalo.nas-central.org/wiki/Overview_of_the_ipkg_package_management_system
+
+Configuring packages
+====================
+
+If your package offers some kind of services that the user might want to start,
+stop or customize, and you want to integrate these functionalities in the administrative web pages, there are some further steps you should follow.
+
+Creating special package users, groups and directories
+------------------------------------------------------
+
+After a package is installed by the ipkg package manager, if a file named
+<pkgname>.postinst is found, it is executed. As an example, here is the minidlna
+post install script:
+
+  #!/bin/sh
+
+  addgroup -S -g 80 multimedia
+  adduser -S -g "minidlna daemon" -G multimedia -u 11 -h /var/lib/minidlna minidlna
+
+  chown -R minidlna:multimedia /etc/minidlna.conf
+  ln -sf /usr/sbin/rcscript /sbin/rcminidlna
+
+It creates a system group called multimedia and a system user called minidlna,
+creates the user home directory, that must be under /var/lib, and creates a shortcut
+to the package init script.
+
+At package removal time, a script called <pkgname>.postrm is executed, and must
+undo the actions performed by the postinst script. An example:
+
+  #!/bin/sh
+
+  deluser minidlna
+  delgroup multimedia
+  rm -f /sbin/rcminidlna
+  # rm the home directory, if it is appropriate
+  # rm -rf /var/lib/minidlna
+
+Starting and stopping a service
+-------------------------------
+
+To manage a service, an init script must be written. It must support at least two
+actions: start and stop, to start and stop the services provided by the package.
+The script should go to the /etc/init.d/ directory and have a name like Snn<pkgname>,
+where nn is a two digit number that specifies the order of the script execution:
+a script named S10foo is executed before a script called S11bar at startup,
+and after S11bar at shutdown.
+Scripts can have the same number if order between them is not important.
+
+As an example, the S21sysctrl sysctrl script
+
+  #!/bin/sh
+
+  DESC="fan/temperature/buttons/sleep/MD Daemon"
+  NAME=sysctrl
+  TYPE=sys
+
+  . $(dirname $0)/common
+
+  case "$1" in
+        start) start $NAME ;;
+        stop)   stop $NAME ;;
+        status) status $NAME ;;
+        reload) reload $NAME ;;
+        restart) restart $NAME ;;
+        *)  usage $0 "start|stop|status|restart|reload" ;;
+  esac
+
+supports the start, stop, status, restart and reload actions, and as such can be
+called from the command line as "/etc/init.d/S21sysctrl start" or
+"/etc/init.d/S21sysctrl stop".
+To avoid the need to remember (and type) all that, shortcuts in the form "rc<pkgname>"
+must exist, enabling the usage of "rcsysctrl start". Usually such shortcuts are
+created at install time by the <pkgname>.postinst script using the
+/usr/sbin/rcscript utility script.
+
+Init scripts can use some utility functions defined in the file /etc/init.d/common.
+The start action launches the process specified in the NAME line, the restart action
+stops the process, waits until it has finished, and
+starts it again; "reload" send a sighup to the process, and can be used
+to signal the process that a configuration change has happened (if the service process
+can deal with it, not all can), and "status" checks if the process is running.
+If the init scrip has execute permissions it will be automatically started
+at boot time.
+
+Using the Services web pages
+----------------------------
+
+If a line with "TYPE=<sys|user|net>" exists in the initscript, than its name, current
+status and the content of the DESC line are shown in the corresponding Service web
+page, together with a button that allows the user to start or stop the service.
+The administrative web page allows setting a service to start at boot
+time by checking the corresponding "Boot enable" checkbutton and submiting.
+
+Configuring the service using a web page
+----------------------------------------
+
+If a file named <pkgname>.cgi exists in the /usr/www/cgi-bin directory, and is
+executable, then a Configure button will appear in the Services web page, executing
+the script when clicked.
+The script must be sh based, and by convention a script called <pkgname>_proc.cgi,
+also sh based and executable, should be called when the form is submited.
+Writting sh based cgi scripts is behind the scope of this document. As a simple
+example, see the /usr/www/cgi-bin/hosts.cgi script.
 
 }}}
