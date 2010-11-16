@@ -12,7 +12,8 @@ How to install:
   This will only work once; if you want to try again, you must set the execution
   permissions of fun_plug again.
   This is deliberate, you can override it by editing (with a unix-compatible editor)
-  fun_plug and commenting the line on top that says ONCE. Without this, if something goes wrong your box would reboot endlessly!
+  fun_plug and commenting the line on top that says ONCE. Without this,
+  if something goes wrong your box would reboot endlessly!
 
 2-If you have a fun_plug file, but don't have ffp, than save your current
   fun_plug file, and proceed as in 1 above. 

@@ -13,12 +13,14 @@ is a two step process.
 A-setup a BuildRoot package
 ===========================
 
-Writing a package/<pkg_name>/<pkg_name>.mk makefile and a package/<pkg_name>/Configure.in configuration file.
+Writing a package/<pkg_name>/<pkg_name>.mk makefile and a package/<pkg_name>/Configure.in
+configuration file.
 
 You have to add the new package to package/Config.in
 
 There are two kinds of BuildRoot packages:
-	-autotools based packages, whose makefiles are very easy to write -- you should always try this first, if the package has a configure script;
+	-autotools based packages, whose makefiles are very easy to write -- you should
+     always try this first, if the package has a configure script;
 	-a normal package, where you must write the rules of a set of well defined targets
 
 In docs/buildroot.html you will find some details about this process, but only
@@ -133,7 +135,8 @@ Configuring packages
 ====================
 
 If your package offers some kind of services that the user might want to start,
-stop or customize, and you want to integrate these functionalities in the administrative web pages, there are some further steps you should follow.
+stop or customize, and you want to integrate these functionalities in the
+administrative web pages, there are some further steps you should follow.
 
 Creating special package users, groups and directories
 ------------------------------------------------------
