@@ -21,8 +21,7 @@ and you know that you can telnet the box.
 -If the box was not cleanly shutdown, then filesystems are not clean and a filesystem
 check (fsck) is performed, during which the blue power led blinks with a slow earthbeat pace -- the boot process stops while the filesystems are being checked.
 
--When a disk or USB-disk/pen are hotpluged, the fsck step will be performed if needed,
- and the blue power led blink with a slow earthbeat pace.
+-When a disk or USB-disk/pen are hotpluged, the fsck step will be performed if needed, and the blue power led blink with a slow earthbeat pace.
 
 -The blue power led should otherwise be steadily on.
 
