@@ -14,10 +14,17 @@ and indicate different status using different blink rates.
 
 -During powerup, the blue power led blinks at a fast rate
 
--If the box was not cleanly shutdown, then filesystems are not clean and a filesystem
-check (fsck) is performed, during which the blue power led blinks with at slow earthbeat pace -- the boot process stops while the filesystems are being checked.
+-*For developers*, if "initdbg" is recognized in the kernel command line, then both amber
+leds will blink once in every 4 seconds, the boot process has stopped at init
+and you know that you can telnet the box.
 
--The blue power led should now be steadly on.
+-If the box was not cleanly shutdown, then filesystems are not clean and a filesystem
+check (fsck) is performed, during which the blue power led blinks with a slow earthbeat pace -- the boot process stops while the filesystems are being checked.
+
+-When a disk or USB-disk/pen are hotpluged, the fsck step will be performed if needed,
+ and the blue power led blink with a slow earthbeat pace.
+
+-The blue power led should otherwise be steadily on.
 
 -If you have any RAID device and a degraded device is detected,
 both amber leds are turned steadly on.
@@ -44,5 +51,6 @@ Services->System->sysctrl->Configure is checked:
 4.1 If you keep the back button pressed for more than ten seconds, you can telnet the box at port 26, as root and without password. This is a safeguard in case you forget the password.
 
 4.2 As a last safeguard, if you press the back button for more that twenty seconds, all the settings saved in flash will be erased, and the box will do a controlled reboot. This is a last resort safeguard, in case you mess the box configuration so much that you can't do anything with it; after the reboot the box will behave as if no settings has ever been saved, and you have to struggle to find its IP (if you have a DHCP server enabled in your network, the box will use it). 
+
 
 For 0.1B6 the amber leds flash twice a second, so its easy to count seconds :)
