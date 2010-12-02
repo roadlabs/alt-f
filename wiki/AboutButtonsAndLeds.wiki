@@ -1,0 +1,48 @@
+Description on the unity buttons and leds behaviour
+
+= Introduction =
+
+On a headless and keyboard-less computer such as the DNS-323,
+the only way to have an idea of its status is through its leds,
+and the only way to interact with the box is through its two buttons.
+
+To expand the small possibilities that those devices offer, they must perform
+different actions depending on how long they are pressed,
+and indicate different status using different blink rates. 
+
+= Details =
+
+-During powerup, the blue power led blinks at a fast rate
+
+-If the box was not cleanly shutdown, then filesystems are not clean and a filesystem
+check (fsck) is performed, during which the blue power led blinks with at slow earthbeat pace -- the boot process stops while the filesystems are being checked.
+
+-The blue power led should now be steadly on.
+
+-If you have any RAID device and a degraded device is detected,
+both amber leds are turned steadly on.
+
+-While a RAID resync or rebuild is performed, both amber leds blink with a 2Hz rhythm
+
+The info bellow was copied from the Services->System->sysctrl->Configure help page,
+available though the "?" icon present at the right of the page title.
+
+1. Three seconds after you start pressing the box front button, the right amber led starts flashing, and if you release the button the box will do a controlled reboot, but *first* will execute the script that you specified in the "Front button 1st cmd entry".
+(configure it using Services->System->sysctrl->Configure)
+
+2. If you keep pressing the button, the left amber led will start flashing, and if you then release the button the box will do a controlled shutdown, but *first* will execute the script that you specified in the "Front button 2nd cmd entry".
+(configure it using Services->System->sysctrl->Configure)
+
+3. If you keep pressing the button, both leds will stop flashing and if you then release the button no action will be taken.
+
+4. Finally, if you press the box back button for one or two seconds, both leds will start flashing, and the script that you specified in the "Back button cmd" will be executed.
+(configure it using Services->System->sysctrl->Configure)
+
+The back button also has two recovery actions if the "Enable Recovery" checkbox in
+Services->System->sysctrl->Configure is checked:
+
+4.1 If you keep the back button pressed for more than ten seconds, you can telnet the box at port 26, as root and without password. This is a safeguard in case you forget the password.
+
+4.2 As a last safeguard, if you press the back button for more that twenty seconds, all the settings saved in flash will be erased, and the box will do a controlled reboot. This is a last resort safeguard, in case you mess the box configuration so much that you can't do anything with it; after the reboot the box will behave as if no settings has ever been saved, and you have to struggle to find its IP (if you have a DHCP server enabled in your network, the box will use it). 
+
+For 0.1B6 the amber leds flash twice a second, so its easy to count seconds :)
