@@ -31,6 +31,8 @@ both amber leds are turned steadly on.
 
 -While a RAID resync or rebuild is performed, both amber leds blink with a 2Hz rhythm
 
+-When a disk spins-down, the corresponding amber led start flashing, with a very short on time and a very long off time.
+
 The info bellow was copied from the Services->System->sysctrl->Configure help page,
 available though the "?" icon present at the right of the page title.
 
