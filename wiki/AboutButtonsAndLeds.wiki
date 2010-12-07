@@ -14,9 +14,10 @@ and indicate different status using different blink rates.
 
 -During powerup, the blue power led blinks at a fast rate
 
--*For developers*, if "initdbg" is recognized in the kernel command line, then both amber
-leds will blink once in every 4 seconds, the boot process has stopped at init
-and you know that you can telnet the box.
+-*For developers*:
+if "initdbg" is recognized in the kernel command line, the boot process stops before init;
+if the kernel has auto-configured the network (ip=... in the kernel command line) then the amber leds will blink alternately every four seconds and you know that you can telnet the box;
+if both amber leds blink simultaneously once in every 4 seconds, the network is not setup and you can only use the serial port to connect to the box.
 
 -If the box was not cleanly shutdown, then filesystems are not clean and a filesystem
 check (fsck) is performed, during which the blue power led blinks with a slow earthbeat pace -- the boot process stops while the filesystems are being checked.
@@ -28,7 +29,7 @@ check (fsck) is performed, during which the blue power led blinks with a slow ea
 -If you have any RAID device and a degraded device is detected,
 both amber leds are turned steadly on.
 
--While a RAID resync or rebuild is performed, both amber leds blink with a 2Hz rhythm
+-While a RAID resync or rebuild is performed, both amber leds blink twice a second
 
 -When a disk spins-down, the corresponding amber led start flashing, with a very short on time and a very long off time.
 
