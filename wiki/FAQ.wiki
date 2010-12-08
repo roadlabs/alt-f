@@ -1,0 +1,21 @@
+#summary FAQ
+
+Q: Can I damage my box when trying Alt-F?
+
+Q: I want to experiment Alt-F, but I'm afraid to loose all my disk data -- is it safe?
+
+Q: In the documentation and discussion groups the word "reloaded" appears a lot, what does that means?
+
+Q: I managed to run Alt-F using the "reloaded" method, but when I reboot the box it goes back to the DLink firmware. Why?
+
+Q: I followed the instructions to experiment Alt-F, but I can't access the web page nor ping the box, and the power led keeps flashing with a eartbeat rhythm -- what's going on?
+
+Q: I made some changes using the web pages, but when I try to save settings I receive an error message saying "Error saving settings! No flash space available."
+
+Q: I flashed Alt-F and it worked fine, but after clearing settings and rebooting I can't access the web page nor ping the box. What's going on?
+
+Q: I forgot my web administration password -- what can I do?
+
+Q: What password should I supply when telneting the box?
+
+Q: How can I poweroff the box without using the web pages?
