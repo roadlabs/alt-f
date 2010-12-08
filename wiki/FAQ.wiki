@@ -1,4 +1,6 @@
-#summary FAQ
+#summary FAQ -- No answers yet
+
+Contribute with your present or past questions
 
 Q: Can I damage my box when trying Alt-F?
 
