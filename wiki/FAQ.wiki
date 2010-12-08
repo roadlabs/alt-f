@@ -23,3 +23,11 @@ Q: I forgot my web administration password -- what can I do?
 Q: What password should I supply when telneting the box?
 
 Q: How can I poweroff the box without using the web pages?
+
+Q: I wanted to reset the box, so I pressed the box back button, but the amber leds start flashing, why?
+
+Q: The Hard drive spindown does not seems to work
+
+Q: When hitting the StandByNow button in the Disk Utilities web page, the disk spins down but after a few seconds it spins up again
+
+
