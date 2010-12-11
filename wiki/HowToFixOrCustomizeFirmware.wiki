@@ -31,10 +31,10 @@ The new file will appear under the usual / (root) hierarchy, as if it belongs to
 
 As an example, a bug has been reported for 0.1B5: the /usr/sbin/loadsave_settings file missed to save /etc/exports in flash. The issue is already fixed for 0.1B6, but users don't have to wait until it is release, they can fix the issue it right now:
 
-  # `aufs.sh -h`
+  # `aufs.sh -u`
   # `cp /usr/sbin/loadsave_settings /Alt-F//usr/sbin/loadsave_settings`
   # edit `/Alt-F/usr/sbin/loadsave_settings` and at around line 290 add `/etc/exports` to the variable named `files`. You must know what you are doing!!!
-  # `aufs.sh -r`
+  # `aufs.sh -m`
 
 Et voilá!
 If `loadsave_settings -sf` if executed, the `/etc/exports` file will be save to flash and loaded on the next reboot (or when `loadsave_settings -lf` is executed)
@@ -51,7 +51,7 @@ The existence of the /Alt-F directory has some undesirable and not obvious effec
 
 Hope this help more that create problems!
 
-(`*`) Instead of step 2 and 4 you can also use, and it might be even be better:
+(`*`) Instead of step 2 and 4 you can also use in certain circumstances:
 
   * 1- At the command line type `aufs.sh -n` # remount aufs with fsnotify
   * 4- At the command line type `aufs.sh -r` # remount aufs with reval
