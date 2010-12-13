@@ -11,3 +11,7 @@ In those situations, one package can be installed without internet connectivity:
 
 Alt-F Package Manager installs it, and after that you can setup in the Alt-F Package Manager a local network package feed.
 This means that you have to download all packages files, as well as the Package file, from the above site, make them available through a local-network httpd server, and configure that local httpd server directory as the package feed.
+
+----
+
+By the way, I'm using www.dropbox.com as the packager feed. If you like it and want to increase the space of my free account, do it using this [https://www.dropbox.com/referrals/NTE1NTU3MTc5?src=global0 link]
