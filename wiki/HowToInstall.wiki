@@ -5,22 +5,25 @@
 How to install:
 ===============
 
+Choose one the methods bellow:
+
 1-If you don't have ffp or a fun_plug file in your box root directory,
-  and you don't even know what that means, just download "Alt-F-<version>.tar"
+  or you don't even know what that means, just download "Alt-F-<version>.tar"
   and "fun_plug" into your box root directory, make sure that "fun_plug" has
   execution permission and reboot.
-  This will only work once; if you want to try again, you must set the execution
-  permissions of fun_plug again.
-  This is deliberate, you can override it by editing (with a unix-compatible editor)
-  fun_plug and commenting the line on top that says ONCE. Without this,
-  if something goes wrong your box would reboot endlessly!
+  -This will only work once; if you want to try again, you must set the execution
+   permissions of fun_plug again.
+   This is deliberate, but you can override it by editing (with a unix-compatible editor)
+   fun_plug and commenting (add a # at the first column) the line near the top that says ONCE.
+   Without this, if something goes wrong your box would reboot endlessly!
+  -If you never installed a fun_plug file, see http://wiki.dns323.info/howto:fun_plug
 
 2-If you have a fun_plug file, but don't have ffp, than save your current
   fun_plug file, and proceed as in 1 above. 
-  You can latter recover your fun_plug file.
+  You can latter decide if you still need your fun_plug file and recover it.
 
 3-If you have ffp,
-  3-a) Just want to try Alt-F once:
+  3-a) Just want to try Alt-F every now and then:
     Download Alt-F-<version>.tar and fun_plug, rename the downloaded
     fun_plug to, e.g, alt-f.sh, put them in your box root directory, and
     execute alt-f.sh from the shell command line.
@@ -28,19 +31,22 @@ How to install:
     Your ffp directory, if found in the root directory of any filesystem
     of your disk, will be recognized and used by Alt-F. The ffp init script
     will be executed by Alt-F on boot, but you should disable all non needed
-    ffp init scripts, and only keep those that provide services that Alt-F don't have.
+    ffp init scripts, disable loading of kernel modules, and only keep services that
+    Alt-F don't have.
     Alt-F binaries have precedence over ffp ones.
 
-  3-b) You want to always use it:
+  3-b) You want to always use Alt-F:
     Proceed and in 2), but read 3-a) above.
 
 4-You want to replace the stock firmware, flashing Alt-F on the box:
   You must first follow one of the above steps and be already running Alt-F.
   Download Alt-F-<version>.bin and use the Alt-F firmware upgrade web page to
-  flash it. You can't flash Alt-F with the vendor's firmware. This is deliberate.
+  flash it.
+  You can't flash Alt-F with the vendor's firmware. This is deliberate.
   Alt-F firmware upgrade web page can flash the vendor supplied firmware, so
-  you can always do a "downgrade". DLink 1.07 and 1.08, as well as Conceptronic
-  1.05b5 firmware was flashed this way *** ON A REV-B1 BOARD ***.
+  you can always do a "downgrade".
+  DLink 1.07 and 1.08, as well as Conceptronic 1.05b5 firmware was flashed this way
+  *** ON A REV-B1 BOARD ***. Reports say that it also work on C1 boards.
   OF COURSE THIS IS DANGEROUS, AND CAN TURN YOUR BOX INTO AN EXPENSIVE BLACK
   BRICK IN YOUR DESKTOP. YOU HAVE BEEN WARNED.
 
@@ -50,16 +56,19 @@ Installation Details
 Installing Alt-F using one of the steps outlined in 1, 2 or 3 above, is
 a two step process.
 
-1-First, the fun_plug script runs, terminating a set of well know
-  processes in order to make enough free memory available for the second
-  step; during this first step a log file named alt-f-reloaded.log is
+1-First, the fun_plug script runs and extracts from the Alt-F-<version>.tar file
+  a directory called alt-f containing a new kernel, a root filesystem and some
+  kernel modules needed for the second step, and then it removes the Alt-F-<version>.tar file;
+  then it terminates a set of well know processes in order to make enough free memory available
+  for the second step; during this first step a log file named alt-f-reloaded.log is
   created, and you can find it in the root directory of your box disk.
 
 2-The second step is in itself a two phase process:
-  a) First, a new kernel and root filesystem is loaded into RAM and the
-     kernel starts running; this phase is where things most often might fail,
-     and there is no possibility of watching or logging what is going on
-     (unless you have setup a serial port on your box).
+  a) First, the new kernel and root filesystem found in the alt-f directory is loaded into RAM
+     and the kernel starts running; this job is done by the kernel modules contained in the
+     alt-f directory.
+     This phase is where things most often might fail, and there is no possibility of watching
+     or logging what is going on, unless you have setup a serial port on your box.
 
   b) If the kernel boots fine, it tries to run a set of files that
      actually starts Alt-F. At the end of this phase a log file named
@@ -69,12 +78,12 @@ a two step process.
 Diagnosing Installation Problems
 ================================
 
-0-The blue power led keeps blinking with a fast *earthbeat* rate,
+0-The blue power led keeps blinking with a slow *earthbeat* rate,
   the blue disk leds blinks randomly and you can't access the box
   neither through telnet, ssh, or its web page, but you can ping it.
-  This means that fsck is running and checking your disk partitions.
+  This means that fsck is running and checking your disk filesystems.
   This happens when the box is not cleanly shutdown, what happens
-  by default with the vendors firmware.
+  with the vendors firmware.
   During the disk checking Alt-F stops booting, and you have to wait until
   the disk checking finishes, at what time the blue power leds stops blinking
   with the heartbeat pace and stays on steadily.
@@ -82,7 +91,7 @@ Diagnosing Installation Problems
   capacity and usage. As an example, checking a 88% full 230GB disk
   takes about 12 minutes.
   On poweroff or reboot, Alt-F will properly unmount the disks, so the check/fix
-  step will not happen at the second and subsequent reboots.
+  step will not happens at the second and subsequent reboots.
 
 1-If the power led is not blinking with the heartbeat pace and you can't access
   Alt-F web home page, before pulling the power cord you can try to see if Alt-F
@@ -101,7 +110,7 @@ Diagnosing Installation Problems
 If the above does not work, you have to restart the box by pulling the
 power cord and reboot the box, which returns to the vendor's software.
 
-Then:
+Then, after rebooting to the vendor's software:
 
 1-If you don't find a file called alt-f-reloaded.log in your box disk
   root directory, download everything again and restart -- the fun_plug
@@ -114,9 +123,12 @@ Then:
   One of the more common problems during the 1-b) step in the Installation
   Details above is lack of free memory. Stop all box services and vendor
   supplied addons.
+
   If you are using ffp, run Alt-F right after rebooting your box;
   the fun_plug script stops all started ffp services by running
   "/ffp/etc/rc stop", but not any service that you might have started manually.
+  Don't forget to disallow ffp from loading any kernel modules, such as usb_storage,
+  as they will conflict with Alt-F own kernel modules.
 
 3-If you find the alt-f.log file, then step 2-b) in the Installation
   Details above has run OK, and there must exists some other problem.
