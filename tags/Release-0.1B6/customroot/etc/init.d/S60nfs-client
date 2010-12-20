@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# nfs           This shell script takes care of starting and stopping
+#               the NFS services. Stolen from RedHat FC5.
+
+DESC="NFS Client"
+NAME=rpc.statd
+NAME2=sm-notify
+
+PORTMAP_FLAG="" #-v
+
+. $(dirname $0)/common
+
+# The /var/lib/nfs directory is actually on a tmpfs filesystem.
+# except when Alt-F is aufs mounted (just install ipkg for this to take effect)
+
+mkdir -p /var/lib/nfs/sm /var/lib/nfs/sm.bak
+
+touch /var/lib/nfs/etab /var/lib/nfs/rmtab \
+	/var/lib/nfs/state /var/lib/nfs/xtab
+
+chown -R daemon /var/lib/nfs /var/lib/nfs
+
+istart() {
+
+	# portmap fails when starting/stopping it in fast succession.
+	# Port 111 stays open in CLOSE_WAIT for 1 minute. Why?
+	# portmap was not designed to be killed, so it does not close its open ports.
+	#
+	# portmap does returns 0 when failing, (it forks and is the parent who returns OK)
+	# so, check if it started successfuly using rpcinfo to check.
+	
+	echo -n "Starting portmap: "
+	while ! rpcinfo -p >& /dev/null ; do
+		portmap $PORTMAP_FLAG
+		echo -n .
+		sleep 2
+	done
+	echo "OK."
+
+	start $NAME2
+	start $NAME -- --no-notify
+}
+
+istop() {
+	if test -n "$(mount -t nfs)"; then
+		if umount -f -t nfs -a >& /dev/null; then
+			echo "Couldn't unmount NFS filesystems and stop nfs-client."
+			return 1
+		fi
+	fi
+
+	if ! rcnfs status >& /dev/null; then
+		stop $NAME
+		rm -f /var/run/portmap_mapping /var/run/sm-notify.pid
+		rmmod -f nfs lockd
+	fi
+}
+
+case "$1" in
+	start) istart ;;
+	stop) istop ;;
+	status) status $NAME ;;
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac

@@ -1,0 +1,83 @@
+#!/bin/sh
+
+mount_squashfs() {
+ 	if test -f /usr.squashfs -a -n "$(grep squashfs /proc/filesystems)"; then
+		echo "pre-init: squashfs"
+		mknod /dev/loop0 b 7 0
+		mkdir -p /tmp/tmpusr
+		mount /usr.squashfs /tmp/tmpusr
+		mount -o bind /tmp/tmpusr/usr /usr
+		umount /tmp/tmpusr
+		rmdir /tmp/tmpusr
+	fi
+}
+
+echo "pre-init started, pid=$$"
+
+mount -t proc proc /proc
+
+# enter iterative shell if cmdline has "initdbg"
+# -use with a plain gzip/lzma or a squashfs compressed initramfs
+# -use with or without a aufs capable kernel
+# -runs inetd to telnet the box if networking is up (ip=... in the kernel cmd line)
+if grep -q "initdbg" /proc/cmdline; then
+	echo "pre-init: initdbg"
+	/bin/mount -t sysfs sysfs /sys
+	/bin/mount -t tmpfs tmpfs /tmp
+	/bin/mount -t devpts devpts /dev/pts
+	mount_squashfs
+	/sbin/mdev -s				# create device nodes
+
+	if ifconfig eth0 | grep -q UP; then
+		mkdir -p /var/run/vsftpd	# ftp needs it
+		/usr/sbin/inetd				# telnet or ftp the box
+		cmd="sleep 2" 
+	fi
+
+	for i in left right; do		# signal the user
+		echo timer > /sys/class/leds/$i\:amber/trigger
+		echo 2000 > /sys/class/leds/$i\:amber/delay_on
+		echo 2000 > /sys/class/leds/$i\:amber/delay_off
+		eval $cmd
+	done
+
+	exec /bin/sh				# enter iterative shell on serial line
+
+# don't create aufs union branches -- can't install or use packages!
+elif test -n "$(grep noaufs /proc/cmdline)" -o -z "$(grep aufs /proc/filesystems)"; then
+	echo "pre-init: no-aufs"
+	mount_squashfs
+	umount /proc	
+	exec /bin/busybox chroot / /sbin/init
+
+# normal boot, create aufs union branches
+else
+	echo "pre-init: aufs"
+	# don't overlay, enable access to the union branches 
+	mkdir /tmproot
+	mount -t tmpfs tmpfs /tmproot
+	mkdir /tmproot/root
+	umount /proc # /proc must not be mounted during the next "cp -a"
+	cp -a / /tmproot/root >& /dev/null
+	mount -t proc proc /proc
+	mkdir /newroot
+	mount -t aufs -o dirs=/tmproot/root aufs /newroot
+	if test -f /usr.squashfs -a -n "$(grep squashfs /proc/filesystems)"; then
+		echo "pre-init: squashfs"
+		mknod /dev/loop0 b 7 0
+		mv /tmproot/root/usr.squashfs /tmproot
+		mkdir -p /tmproot/rootsq
+		mount -o loop /tmproot/usr.squashfs /tmproot/rootsq
+		mount -t aufs -o remount,append:/tmproot/rootsq=rr aufs /newroot
+	fi
+	mkdir /newroot/rootmnt
+	mount --move /tmproot /newroot/rootmnt	
+	umount /proc
+	rmdir /tmproot
+	cd /newroot
+	exec switch_root . sbin/init	
+fi
+
+# enter iterative shell on serial line if above fails
+echo "pre-init: fail"
+exec /bin/sh	

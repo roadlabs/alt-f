@@ -1,0 +1,9 @@
+Package: ntfsprogs
+Version: 2.0.0
+Description: Wide collection of NTFS utilities.
+Depends: libfuse
+Architecture: arm
+Priority: optional
+Section: admin
+Source: http://www.linux-ntfs.org/
+Maintainer: jcard

@@ -1,0 +1,20 @@
+#! /bin/sh
+
+DESC="telnet, ftp, ssh, rsync, http, swat, lpd...<br><strong>Don't disable unless you have a serial port!</strong>"
+TYPE=net
+NAME=inetd
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		rcdropbear init
+		rcvsftpd init
+		start $NAME
+		;;
+	stop) stop $NAME ;;
+	restart) restart $NAME ;;
+	reload) reload $NAME ;;
+	status) status $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac
