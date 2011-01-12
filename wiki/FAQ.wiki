@@ -30,4 +30,4 @@ Q: The Hard drive spindown does not seems to work
 
 Q: When hitting the StandByNow button in the Disk Utilities web page, the disk spins down but after a few seconds it spins up again
 
-
+Q: Is the DNS-320/321/343/xxx supported?
