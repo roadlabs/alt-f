@@ -78,18 +78,22 @@ a two step process.
 Diagnosing Installation Problems
 ================================
 
-0-The blue power led keeps blinking with a slow *earthbeat* rate,
-  the blue disk leds blinks randomly and you can't access the box
-  neither through telnet, ssh, or its web page, but you can ping it.
-  This means that fsck is running and checking your disk filesystems.
-  This happens when the box is not cleanly shutdown, what happens
-  with the vendors firmware.
-  During the disk checking Alt-F stops booting, and you have to wait until
-  the disk checking finishes, at what time the blue power leds stops blinking
-  with the heartbeat pace and stays on steadily.
-  It can take a very long time for fsck to finish, depending on the disks
-  capacity and usage. As an example, checking a 88% full 230GB disk
-  takes about 12 minutes.
+0-DEPRECATED:
+		The blue power led keeps blinking with a slow *earthbeat* rate,
+		the blue disk leds blinks randomly and you can't access the box
+		neither through telnet, ssh, or its web page, but you can ping it.
+		This means that fsck is running and checking your disk filesystems.
+		This happens when the box is not cleanly shutdown, what happens
+		with the vendors firmware.
+		During the disk checking Alt-F stops booting, and you have to wait until
+		the disk checking finishes, at what time the blue power leds stops blinking
+		with the heartbeat pace and stays on steadily.
+		It can take a very long time for fsck to finish, depending on the disks
+		capacity and usage. As an example, checking a 88% full 230GB disk
+		takes about 12 minutes.
+  This has changed with 0.1B7. Now fsck is done in the background and the
+  boot procedure continues. However, the filesystems are not available until
+  fsck finish.
   On poweroff or reboot, Alt-F will properly unmount the disks, so the check/fix
   step will not happens at the second and subsequent reboots.
 
@@ -130,7 +134,10 @@ Then, after rebooting to the vendor's software:
   Don't forget to disallow ffp from loading any kernel modules, such as usb_storage,
   as they will conflict with Alt-F own kernel modules.
 
-3-If you find the alt-f.log file, then step 2-b) in the Installation
+3-If you find a file named alt-f.fail then the reloading process failed in the previous
+  reloading attempt, and to avoid an endless boot cycle Alt-F inhibits itself from booting. 
+
+4-If you find the alt-f.log file, then step 2-b) in the Installation
   Details above has run OK, and there must exists some other problem.
   Examine the file to see if there are any obvious errors, and post it
   when asking for help.

@@ -5,6 +5,18 @@
 To use Alt-F you can use its administering web pages, directing a
 web browser to the box default IP.
 
+The web pages were tested with firefox, if you are using another browser and
+find that something is not OK, try first with firefox and than report back or,
+preferably, send a patch.
+
+With the web pages, which are very crude and rude, you can do most of
+the administrative tasks. One of the most likely causes for failures in
+the web pages are spaces in filenames and browser caching. Please send a
+report and a patch.
+
+Finding the Alt-F box IP
+========================
+
 When booting, and to assign itself an IP, Alt-F tries to first use a IP supplied
 through the kernel command line; if it is not supplied, it then tries
 to use its own flashed settings; if unsuccessful it then tries to use the vendors
@@ -41,8 +53,13 @@ very unlikely.
 The easiest and recommended way for a server is for you to setup first the box
 with a fixed IP using the vendors firmware. This will be the IP used by Alt-F.
 
-To login in the web pages, you have to setup a new (volatile) password,
-and "root" password will be the same.
+First time setup
+================
+
+After getting the box IP and acessing it using a browser, you will see
+Alt-F status page. To go to any other page you have to setup and confirm
+an administrative password. The 'root' user (the linux Administrator)
+password will be the same.
 
 You can then login using telnet or ssh and change the root password
 using the "passwd" command. Note that if you later change the password
@@ -50,33 +67,49 @@ using the web page, than the root password will also be changed, so the
 recommend procedure is to first set up a web password and then login
 using telnet or ssh and change the root password.
 
-The pages were tested with firefox, if you are using another browser and
-find that something is not OK, try first with firefox and than report
-back or, preferably, send a patch.
-
-With the web pages, which are very crude and rude, you can do most of
-the administrative tasks. One of the most likely causes for failures in
-the web pages are spaces in filenames and browser caching. Please send a
-report and a patch.
-
-If you have a serial port, you can see the boot log and you are automaticaly
-logged in, no password is asked.
-Use the "passwd" command to set a new (volatile) root password.
-
 The first time that you use the web pages or change the password, you
 will be guided through a small set of pages, being prompted for a few
-configuration details. In the end, you should flash the settings.  The
+configuration details. If you miss or skip some of these pages, you must
+manually follow the folowing sequence:
+
+Setup->Host: you must setup your host details, such as name, description and
+workgroup, and the networking details.
+
+Setup->Time: setup your timezone, i.e., the country and city where
+you live, and adjust the clock. If the clock is not adjusted or your desktop
+computer does not has the same time, you will not be able to login
+
+Disk-Wizard: You can format your disks, or leave them as they are, Alt-F will
+recognize most partitioning schemes. Be aware that some partitioning schemes,
+filesystems or RAID layouts are not recognized be the vendor's firmware.
+
+Setup->Users: you must create at least an user. You will be asked for a filesystem
+where a directory called Users will be created, and where all users home directory
+will be created.
+To create a new user give the user name, such as 'John Smith', a nick name, such
+as jsmith (no spaces), and a password and password confirmation.
+You can leave the User and Group Id with the default values.
+The user name and password will be used to autenticate under MS-Windoes, while the
+nick name and password will be used to autenticate under linux.
+
+Services->Network: You will have to start the network service of your choice, or
+several simultaneously. Most MS-Windoes users want smb. By default shares named
+'Users', 'Public RW' and 'Public RO' will be available (*after* you select at least
+an user)
+
+System->Settings: In the end, you should flash the settings.  The
 vendor flashed settings are only lost if you deliberately clear them.
 However, they use almost all available flash space, so when trying to
 save Alt-F settings you can see an error message.
 
-To flash the settings in the cli (command line "interface"), use the
-command "loadsave_settings". If you don't save settings, on each reboot
-a new RSA/DSA key pair is generated for dropbear usage, and your ssh
-client will complain.
+If you don't save settings, on each reboot a new RSA/DSA key pair is generated
+for dropbear/ssh usage, and your ssh client will complain.
 
 After you save the settings in flash, Alt-F will use them on the next reboot,
 so if you have setup a new IP in the host page, be sure that you write it down.
+
+Disk Details
+=============
 
 When a new disk is detected, either internal or USB connected, either at
 boot or by hot-plugging,  Alt-F will first check and if necessary fix all
@@ -102,12 +135,11 @@ name, as in /mnt/sda3, or a filesystem label, such as /mnt/Backups.
 If during the check/fix step the partition was dirty and could not be fixed,
 it will be mounted read-only, in order to not further damage it.
 
-You can set a filesystem label using the cli command "plabel" or using the
-administering  web pages (not for NTFS, at least until you install the
-ntfsprogs package).
+You can set a filesystem label using the Disk-Filesystem web page
+(not for NTFS, at least until you install the ntfsprogs package).
 Ext2/3/4/VFAT/NTFS/ISO9660 filesystems are recognized.
 
-RAID-0,1 and 5 (using an external USB disk) and linear RAID (JBD) are recognized,
+RAID-0, 1 and 5 (using an external USB disk) and linear RAID (JBD) are recognized,
 assembled and mounted when a disk is inserted or detected.
 
 The leds will be steady orange when a RAID device is degraded, and will
@@ -131,8 +163,9 @@ might crash.
 USB attached printers will also be recognized, and a rudimentary lpd
 spooler used for them. They can also be used with samba.
 
-Disks will, by default, be set to sleep after 20 minuts of inactivity;
-when this happens, the corresponding orange led will slowly flash.
+Disks can be set to sleep after a predetermine time of inactivity using the
+Disk->Utilitis web page. When a disk spins down the corresponding orange
+led will slowly flash.
 
 If you keep the box front button pressed for more than 3 seconds, the
 right led will start flashing, and if you release the button while it is
