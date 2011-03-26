@@ -1,0 +1,34 @@
+#! /bin/sh
+
+set -e
+
+DESC="FUPPES, the Free UPnP Entertainment Service"
+TYPE=user
+NAME=fuppesd
+
+PIDFILE=/var/run/fuppes.pid
+FUPPES_ARGS="--config-dir /etc/fuppes/ --log-file /var/log/fuppes.log \
+	--database-file /var/lib/fuppes/fuppes.db --log-level 3"
+FUPPES_USER=fuppes
+FUPPES_GROUP=multimedia
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		echo -n "Starting $NAME: "
+#	fuppes does a fork...	--make-pidfile --pidfile $PIDFILE \
+		start-stop-daemon -S -q -b \
+			--chuid $FUPPES_USER:$FUPPES_GROUP \
+			-x $NAME -- $FUPPES_ARGS
+		omsg $?
+		;;
+	stop)
+		echo -n "Stopping $NAME: "
+		start-stop-daemon -K -q -s 2 -n $NAME
+		omsg $?
+		;;
+	restart) restart $NAME ;;
+	status) status $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac
