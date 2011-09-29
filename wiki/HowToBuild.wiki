@@ -37,12 +37,12 @@ Then,
   
 	cd alt-f-read-only
 	export BLDDIR=<dir> # where you want the build tree, e.g. ~/Alt-F-build
-	export PATH=$PWD/bin:$PATH # build utilities (some might conflict with the system ones, so put bin ahead in PATH)
+	export PATH=$PWD/bin:$BLDDIR/build_arm/staging_dir/usr/bin:$PATH # build utilities
 	./mkprepare.sh
 	make O=$BLDDIR menuconfig # exit without making modifications (but save if asked)
 	make O=$BLDDIR
 
-and go for a two hours walk (old P4HT@3.2GHz/2GB), or a 15 minutes coffee-break (Core i5-2400@3.10GHz/6GB) 
+and make a 15 minutes coffee-break (Core i5-2400@3.10GHz/4GB), or go for a two hours walk (old P4HT@3.2GHz/2GB).  
 
 When finished, you should find in $BLDDIR/binaries/dns323, the kernel,
 "zImage", and the root filesystem image, "rootfs.arm.ext2".
@@ -52,7 +52,7 @@ structure used to create the root filesystem image, "rootfs.arm.ext2".
 That directory was first populated by buildroot, using first the
 contents of target/generic/target_busybox_skeleton as a template, and
 then populating it with the configured packages; after that the
-directory is processed by the  "configfs" script, that copied the
+directory is processed by the "configfs" script, that copied the
 contents of "customroot" to it and also remove some other files.
 
 To create an initramfs, do
@@ -82,8 +82,8 @@ initramfs, still smaller in size but slower to boot.
 
 If you are already using Alt-F, you can copy zImage and
 rootfs.arm.cpio-sq.lzma (or rootfs.arm.cpio.gz or rootfs.arm.cpio.lzma)
-to the box  root home directory, "/root" directory and issue a "reboot"
-command. The /etc/init.d/rcE script will recognize these files and will
+to the box "/root" directory and issue a "reboot" command.
+The /etc/init.d/rcE script will recognize these files and will
 do a kexec after doing all other cleanup, thus reloading a new kernel
 and initramfs without an actual hardware reboot.
 
@@ -116,7 +116,7 @@ make O=$BLDDIR menuconfig # to configure the build
 make O=$BLDDIR linux26-menuconfig # to fine configure linux
 make O=$BLDDIR busybox-menuconfig # to fine configure busybox
 make O=$BLDDIR uclibc-menuconfig  # to fine configure uclibc
-make O=$BLDDIR saveconfig  # to save configuration (in local/dns323)
+make O=$BLDDIR saveconfig  # to save configuration (in local/dns323/)
 make O=$BLDDIR loadconfig # to retrieve the saved configuration
 
 Make clean
@@ -128,8 +128,8 @@ cleaning is to delete the build tree and restart again :-/.
 A faster, *non guaranteed* way to clean, that sometimes produces erroneous system
 libraries is:
 
-  rm $BLDDIR/project_build_arm/dns323/autotools-stamps/* # but not the gcc_libs_target_installed file
-  rm -rf $BLDDIR/project_build_arm/dns323/root/* # but not the lib directory
+  rm $BLDDIR/project_build_arm/dns323/autotools-stamps/* # but *not* the gcc_libs_target_installed file
+  rm -rf $BLDDIR/project_build_arm/dns323/root/* # but *not* the lib directory
    nor the usr/lib/libstdc++.so* files
   rm $BLDDIR/project_build_arm/dns323/.root
   make O=$BLDDIR
