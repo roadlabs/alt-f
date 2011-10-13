@@ -1,0 +1,48 @@
+#!/bin/sh
+
+DESC="NFS Client"
+NAME=rpc.statd
+NAME2=sm-notify
+REQUIRE="portmap"
+
+PORTMAP_FLAG="" #-v
+
+. $(dirname $0)/common
+
+# The /var/lib/nfs directory is actually on a tmpfs filesystem.
+# except when Alt-F is aufs mounted (just install ipkg for this to take effect)
+
+mkdir -p /var/lib/nfs/sm /var/lib/nfs/sm.bak
+
+touch /var/lib/nfs/etab /var/lib/nfs/rmtab \
+	/var/lib/nfs/state /var/lib/nfs/xtab
+
+chown -R daemon /var/lib/nfs /var/lib/nfs
+
+istart() {
+	start $NAME2
+	start $NAME -- --no-notify
+}
+
+istop() {
+	if test -n "$(mount -t nfs)"; then
+		if ! umount -f -t nfs -a >& /dev/null; then
+			echo "Couldn't unmount NFS filesystems and stop nfs-client."
+			return 1
+		fi
+	fi
+
+	if ! rcnfs status >& /dev/null; then
+		stop $NAME
+		rm -f /var/run/sm-notify.pid
+		rmmod -f nfs lockd >& /dev/null
+	fi
+}
+
+case "$1" in
+	start) istart ;;
+	stop) istop ;;
+	status) status $NAME ;;
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac

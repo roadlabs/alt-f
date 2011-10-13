@@ -1,0 +1,159 @@
+#!/bin/sh
+
+# disable recurring reboots,
+# comment if you want to go to Alt-F on every reboot
+ONCE=yes 
+
+# let the kernel initialize the network
+# comment if you want Alt-F to do it
+KIP=yes
+
+TMP_DIR=/tmp
+BASE_DIR=/mnt/HD_a2
+ALTF_DIR=alt-f
+ALTF_PATH=$BASE_DIR/alt-f
+ALTF_TARBALL=$BASE_DIR/Alt-F-*.tar
+FFPRC=/ffp/etc/rc
+LOG_FILE=alt-f-reloaded.log
+FAILS=alt-f.fail
+
+exec > $TMP_DIR/$LOG_FILE
+
+check() {
+	if ! test -r "$1"; then
+		echo "$1 not found, exiting"
+		mv $TMP_DIR/$LOG_FILE $BASE_DIR
+		#chown -R nobody:501 $BASE_DIR/alt-f*
+		chmod -R 666 $BASE_DIR/alt-f*
+		exit 1
+	fi
+}
+
+if ! test -d $BASE_DIR; then
+	echo "No $BASE_DIR found, exiting"
+	exit 1
+fi
+
+# disable recurring reboots
+if test "$ONCE" = "yes"; then
+	if test "$(dirname $0)" = "."; then
+		chmod -x "$(basename $0)"
+	else 
+		chmod -x "$0"
+	fi
+elif test -f $BASE_DIR/$FAILS; then # failsafe -- last reloaded failed?
+	echo "Last reload failed, exiting. Remove $FAILS to try again."
+	mv $TMP_DIR/$LOG_FILE $BASE_DIR
+	#chown -R nobody:501 $BASE_DIR/alt-f*
+	chmod -R 666 $BASE_DIR/alt-f*
+	exit 1
+fi
+
+cd $BASE_DIR
+
+if test -r $ALTF_TARBALL; then 
+#	if busybox --help | grep -q 1.11; then # 1.10b6 has busybox 1.11.2, that accepts 'tar xf'
+#		tar xf $ALTF_TARBALL
+#	else
+		# what the heck?! -x doesn't work, but -v does, so extract to stdout!
+		mkdir -p $ALTF_PATH
+		check $ALTF_PATH
+		for i in $(tar -tf $ALTF_TARBALL); do
+			if ! test -d $i; then
+				tar -xOf $ALTF_TARBALL $i > $i
+			fi
+		done
+		
+#	fi
+	rm $ALTF_TARBALL
+	chmod -R 666 alt-f
+	chmod 777 alt-f
+fi
+
+check $ALTF_PATH
+cd $ALTF_PATH
+
+KV=$(uname -r)
+kernel=zImage
+machtype=1542
+initrd=$(ls rootfs.arm.cpio*)
+cmdline="console=ttyS0,115200"
+#initrd=rootfs.arm.cpio.gz
+#cmdline="initdbg console=ttyS0,115200"
+
+check "$kernel"
+check "$initrd"
+check "reloaded-$KV.ko"
+
+if test -n "$KIP"; then
+	eval $(ifconfig egiga0 | sed -n '/inet addr/s/[a-zA-Z: ]*\([0-9.]*\)[a-zA-Z: ]*\([0-9.]*\)[a-zA-Z: ]*\([0-9.]*\)/ip=\1; bcast=\2; mask=\3/p')
+
+	eval $(route -n | sed -n '/^0.0.0.0/s/[0-9.]* *\([0-9.]*\) .*/gw=\1/p')
+
+	eval $(sed -n '/workgroup/s/.* = \(.*$\)/domain=\1/p' /etc/samba/smb.conf)
+
+	cmdline="$cmdline ip=$ip::$gw:$mask:$(hostname).$domain:eth0:none"
+fi
+
+# stop ffp services
+if test -f $FFPRC; then
+	echo "ffp present"
+	$FFPRC stop
+fi
+
+# stop processes
+smb stop
+proc="apkg atd crond wget smbclient pure-ftpd prescan upnp udhcpc \
+	mt-daapd lpd inotify_itune inotify_upnp btdog bt op_server \
+	inotifybt UpdateDB check_hotplug xmldb check_daemon mserver \
+	mDNSResponder openssl webs"
+
+for i in $proc; do
+	if test -n "$(pidof $i)"; then
+		kill -15 $(pidof $i)
+	fi
+done
+#sleep 3
+for i in $proc; do
+	if test -n "$(pidof $i)"; then
+		kill -9 $(pidof $i)
+	fi
+done
+kill_running_process
+
+# try to solve network problems in rev-C1 boards
+ifconfig egiga0 down
+
+# try to solve usb problems when reloading
+rmmod usblp
+
+sleep 3
+echo -e "\ncwd:"; pwd
+echo -e "\nps:"; ps
+echo -e "\nfree:" ;free
+echo -e "\nmount:"; mount
+echo -e "\ndf:"; df -h
+echo -e "\nlsmod:"; lsmod
+
+mv $TMP_DIR/$LOG_FILE $BASE_DIR
+
+# Alt-F will remove it if boot succeeds, else next reboot will be aborted
+if test "$ONCE" != "yes"; then
+	touch ../$FAILS
+fi
+
+#chown -R nobody:501 $BASE_DIR/alt-f*
+chmod 777 $BASE_DIR/alt-f*
+
+# umount filesystems
+swapoff -a
+sync
+umount -a -r
+sleep 3
+
+# boot
+insmod reloaded-$KV.ko machtype=$machtype kernel=$kernel initrd=$initrd cmdline=\"$cmdline\"
+
+echo "Reload failed, rebooting"
+
+reboot

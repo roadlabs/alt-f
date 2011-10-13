@@ -1,0 +1,38 @@
+#!/bin/sh
+
+NAME=mediatomb
+DESC="MediaTomb provides an A/V UPnP service"
+TYPE=user
+
+MT_USER="mediatomb"
+MT_GROUP="multimedia"
+
+MT_PIDFILE="/var/run/mediatomb.pid"
+MT_LOGFILE="/var/log/mediatomb.log"
+
+MT_HOME="/var/lib"
+MT_CFGDIR="mediatomb"
+
+MT_PORT=50500
+
+MT_ARGS="-d -u $MT_USER -g $MT_GROUP -P $MT_PIDFILE -l $MT_LOGFILE \
+-m $MT_HOME -f $MT_CFGDIR -p $MT_PORT -e eth0"
+
+. $(dirname $0)/common
+
+case "$1" in
+  start)
+	# Applying multicast settings to eth0
+	route add -net 239.0.0.0 netmask 255.0.0.0 eth0 >& /dev/null
+	ifconfig eth0 allmulti
+	touch $MT_PIDFILE
+	chown mediatomb $MT_PIDFILE
+	start $NAME -- $MT_ARGS
+	;;
+
+  stop) stop $NAME ;;
+  reload) reload $NAME ;;
+  restart) restart $NAME ;;
+  status) status $NAME ;;
+  *) usage $0 "start|stop|status|restart|reload" ;;
+esac

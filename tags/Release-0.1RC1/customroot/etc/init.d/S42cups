@@ -1,0 +1,42 @@
+#! /bin/sh
+
+DESC="The Common Unix Printing System daemon"
+TYPE=sys
+NAME=cupsd
+INETD_CONF=/etc/inetd.conf
+PRINTC=/etc/printcap
+
+CUPS_USER=cups
+CUPS_GROUP=lpadmin
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		export TZ=$(cat /etc/TZ)
+		unset TMPDIR
+
+		rcinetd disable printer
+		start $NAME
+		avahi add ipp
+
+		while ! cupsctl >& /dev/null ; do usleep 100000; done
+		cupsctl _remote_admin=1 _share_printers=1 >& /dev/null
+		;;
+
+	stop)
+		stop $NAME
+
+		if grep -q cupsd $PRINTC >& /dev/null; then 
+			rm $PRINTC
+		fi		
+
+		rcinetd enable printer
+		avahi remove ipp
+		;;
+
+	restart) restart $NAME ;;
+	reload) reload $NAME ;;
+	status) status $NAME ;;
+	*) usage $0 "start|stop|status|restart|reload" ;;
+esac
