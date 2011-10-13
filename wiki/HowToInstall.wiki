@@ -5,53 +5,57 @@
 How to install:
 ===============
 
+You can install Alt-F "on top" of D-Link firmware by following one of the 1-3 methods
+bellow. This works like installing software on disk, does not flash anything on your box, and
+does not void your warranty. The only inconvenient is augmented boot time, as two systems
+has to be booted: D-Link first followed by Alt-F (Alt-F itself boots in 45 seconds).
+
+You can alternatively flash Alt-F on the box by following method 4 bellow, which replaces the
+D-Link firmware. This will probably void the box warranty.
+
 Choose one the methods bellow:
 
 1-If you don't have ffp or a fun_plug file in your box root directory,
   or you don't even know what that means, just download "Alt-F-<version>.tar"
   and "fun_plug" into your box root directory, make sure that "fun_plug" has
   execution permission and reboot.
-  -This will only work once; if you want to try again, you must set the execution
+  -This will only work once; if you want to use it again, you must set the execution
    permissions of fun_plug again.
    This is deliberate, but you can override it by editing (with a unix-compatible editor)
    fun_plug and commenting (add a # at the first column) the line near the top that says ONCE.
-   Without this, if something goes wrong your box would reboot endlessly!
+   Without this feature, if something goes wrong your box would reboot endlessly!
   -If you never installed a fun_plug file, see http://wiki.dns323.info/howto:fun_plug
 
 2-If you have a fun_plug file, but don't have ffp, than save your current
-  fun_plug file, and proceed as in 1 above. 
+  fun_plug file, e.g. by renaming it, and proceed as in 1 above. 
   You can latter decide if you still need your fun_plug file and recover it.
 
-3-If you have ffp,
-  3-a) Just want to try Alt-F every now and then:
-    Download Alt-F-<version>.tar and fun_plug, rename the downloaded
-    fun_plug to, e.g, alt-f.sh, put them in your box root directory, and
-    execute alt-f.sh from the shell command line.
+3-If you have ffp, the recommended procedure is to save your current fun_plug and
+  ffp directory, e.g. by renaming them, then proceed as in 1.
+  If you later decide to use Alt-F together with ffp, you can use Alt-F ffp package
+  manager to install ffp packages, or use your current ffp installation, but:
 
-    Your ffp directory, if found in the root directory of any filesystem
+    When Alt-F starts, your ffp directory, if found in the root directory of any filesystem
     of your disk, will be recognized and used by Alt-F. The ffp init script
-    will be executed by Alt-F on boot, but you should disable all non needed
-    ffp init scripts, disable loading of kernel modules, and only keep services that
-    Alt-F don't have.
+    will be executed by Alt-F, so you should disable all non needed ffp init scripts,
+    disable loading of kernel modules, and only keep services that Alt-F don't have.
     Alt-F binaries have precedence over ffp ones.
 
-  3-b) You want to always use Alt-F:
-    Proceed and in 2), but read 3-a) above.
-
 4-You want to replace the stock firmware, flashing Alt-F on the box:
-  You must first follow one of the above steps and be already running Alt-F.
-  Download Alt-F-<version>.bin and use the Alt-F firmware upgrade web page to
-  flash it.
-  You can't flash Alt-F with the vendor's firmware. This is deliberate.
+  Since Alt-F-0.1RC1 you can flash Alt-F from within the D-Link firmware.
+  Download Alt-F-<version>.bin and use it as if it was a D-Link supplied firmware file.
+  If you are already using Alt-F, using one of the 1-3 above methods, download
+  Alt-F-<version>.bin and use the Alt-F firmware upgrade web page to flash it.
+ 
   Alt-F firmware upgrade web page can flash the vendor supplied firmware, so
   you can always do a "downgrade".
-  DLink 1.07 and 1.08, as well as Conceptronic 1.05b5 firmware was flashed this way
-  *** ON A REV-B1 BOARD ***. Reports say that it also work on C1 boards.
+  DLink 1.07, 1.08 and 1.09 as well as Conceptronic 1.05b5 firmware was flashed this way
+  *** ON A REV-B1 BOARD ***. Reports say that it also work on A1 and C1 boards.
   OF COURSE THIS IS DANGEROUS, AND CAN TURN YOUR BOX INTO AN EXPENSIVE BLACK
   BRICK IN YOUR DESKTOP. YOU HAVE BEEN WARNED.
 
-Installation Details
-====================
+Installation Details for methods 1-3 above
+==========================================
 
 Installing Alt-F using one of the steps outlined in 1, 2 or 3 above, is
 a two step process.
@@ -78,8 +82,8 @@ a two step process.
 Diagnosing Installation Problems
 ================================
 
-0-DEPRECATED:
-		The blue power led keeps blinking with a slow *earthbeat* rate,
+0-DEPRECATED (but read-on)
+		The blue power led keeps blinking with a slow *earth beat* rate,
 		the blue disk leds blinks randomly and you can't access the box
 		neither through telnet, ssh, or its web page, but you can ping it.
 		This means that fsck is running and checking your disk filesystems.
@@ -155,7 +159,7 @@ Then, after rebooting to the vendor's software:
 The reloading process
 =====================
 
-By default, when booting, the DNS-323 firwmare will search for a file named
+By default, when booting, the DNS-323 firmware will search for a file named
 fun_plug in the hard disk users directory, usually Volume_1. If it finds it,
 and the file has the executable attribute set, it will be executed. Thanks D-Link!
 
@@ -175,7 +179,7 @@ name alt-f will appear.
 Uninstalling
 ============
 
-If you want to uninstall Alt-F, just remove that directory and the fun_plug file.
+If you want to un-install Alt-F, just remove that directory and the fun_plug file.
 If you have flashed Alt-F, you can revert the process by downloading a vendor firmware
 image and flashing it using Alt-F firmware upgrade web page.
 
