@@ -8,10 +8,35 @@ In order to follow the procedures outlined in this page, you must be able to bui
 Alt-F yourself, so start with the HowToBuild wiki page.
 
 Creating Disk Installable Packages, or packages, as they will be called from here on,
-is a two step process.
+is a three step process. But first:
 
-A-setup a BuildRoot package
-===========================
+Step 0: Building all Alt-F Packages
+===================================
+
+Seldon a package can be build without other packages support, specially libraries. It is thus necessary that the new package be built in the Alt-F package build environment.
+
+Alt-F source has three configuration files available:
+
+  .config-base is used to build the base firmware
+  .config-pkgs is used to build all Alt-F packages (include the basic firmware packages)
+  .config-toolchain is used to build only the build tools, such as compiler, binutils, uClibc...
+
+Buildroot uses by default .config, so you only have to copy the desired .config-xxx file
+to .config and start the build as depicted in the HowToBuild wiki entry.
+
+E.g., after a svn checkout:
+
+	cp .config-pkgs .config
+	export BLDDIR=<dir> # where you want the build tree, e.g. ~/Alt-F/build-pkgs
+	export PATH=$PATH:$PWD/bin:$BLDDIR/build_arm/staging_dir/usr/bin: # PATH to host-tools and build made programs
+	./mkprepare.sh # build host-tools, put them in bin/
+	make O=$BLDDIR menuconfig # exit without making modifications (but save if asked)
+	make O=$BLDDIR
+
+This takes 45 minutes (excluding downloads) on Core i5-2400@3.10GHz/4GB
+
+Step 1: setup a BuildRoot package
+=================================
 
 Writing a package/<pkg_name>/<pkg_name>.mk makefile and a package/<pkg_name>/Configure.in
 configuration file.
@@ -40,10 +65,10 @@ if you want) without installing the package in the root filesystem, there are so
 	make O=$BLDDIR pkgname-install
 	make O=$BLDDIR pkgname
 
-But this subject is out of scope.
+But this subject is out of scope. Notice that you must 
 
-B-Setup a Alt-F package
-=======================
+Step 2: setup a Alt-F package
+=============================
 
 In this step you have to know the list of files of your package, and this
 is the most difficult step.
@@ -234,5 +259,6 @@ The script must be sh based, and by convention a script called <pkgname>_proc.cg
 also sh based and executable, should be called when the form is submited.
 Writting sh based cgi scripts is behind the scope of this document. As a simple
 example, see the /usr/www/cgi-bin/hosts.cgi script.
+
 
 }}}

@@ -42,7 +42,7 @@ Then,
 	make O=$BLDDIR menuconfig # exit without making modifications (but save if asked)
 	make O=$BLDDIR
 
-and make a 15 minutes coffee-break (Core i5-2400@3.10GHz/4GB), or go for a two hours walk (old P4HT@3.2GHz/2GB).  
+and make a 15 minutes coffee-break (Core i5-2400@3.10GHz/4GB), or go for a two hours walk (old P4HT@3.2GHz/2GB) (times given does not include tarball downloads)
 
 When finished, you should find in $BLDDIR/binaries/dns323, the kernel,
 "zImage", and the root filesystem image, "rootfs.arm.ext2".
