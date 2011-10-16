@@ -47,7 +47,15 @@ If you can't fix the mistake as in above, you have to remove the disk and remove
 
 The existence of the /Alt-F directory has some undesirable and not obvious effects that turns me nuts from time to time -- removing this facility has been seriously considered more than once.
 
+The most notorious problem is that new files created in a directory which is being shadowed in disk, will be created on disk. Changing files in the shadowed directory, depending on the way they are saved, might end-up moving them to disk. Deleting a shadowed file seems to delete it, but only marks it for deletion, and it might reappear latter after a reboot while aufs is not yet mounted.
+
+Because of this and other behavior, all setting files are copied to disk when aufs is mounted and copied back to memory when aufs is unmounted.
+
+Also, there might exist problems with disk spindown, because some server process update files while they run, and if the updated files are being shadowed the disk will be spin-up.
+
 *Don't send bug reports or fill any issues* if you made changes to any system file this way!
+
+See http://lwn.net/Articles/324291/, http://lwn.net/Articles/325369/,  http://lwn.net/Articles/327738/ for further detail.
 
 Hope this help more that create problems!
 
