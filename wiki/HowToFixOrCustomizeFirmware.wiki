@@ -15,7 +15,7 @@ But there is a way to make permanent on-disk changes to any file, be it a config
 
 == Details ==
 
-When an Alt-F package is installed, a directory named Alt-F will be created on the root of the filesystem of your choice, e.g. /mnt/sda2/Alt-F. The package files will reside in that directory and will *shadow* any file in the normal root filesystem.
+When an Alt-F package is installed, a directory named Alt-F will be created on the root of the filesystem of your choice, e.g. /mnt/sda2/Alt-F, and a link to it will be created in the root, /Alt-F. The package files will reside in that directory and will *shadow* any file in the normal root filesystem.
 I.e, if a file named usr/sbin/loadsave_settings exists in that directory, it will shadow, i.e. override, the firmware distributed /usr/sbin/loadsave_settings file.
 
 So you can fix or customize Alt-F by putting any file there.
@@ -24,7 +24,7 @@ So you can fix or customize Alt-F by putting any file there.
 
   # Start by installing an Alt-F package, the ipkg package will be enough.
   # At the command line type `aufs.sh -u` # unmount aufs (`*`)
-  # Add the file of your choice to the /Alt-F hierarchy
+  # Add or change the file of your choice to the /Alt-F hierarchy
   # At the command line type `aufs.sh -m` # mount aufs (`*`)
 
 The new file will appear under the usual / (root) hierarchy, as if it belongs to the normal firmware, and if it has the same name as one of the firmware files, it will *override* it.
@@ -45,6 +45,18 @@ If you can't fix the mistake as in above, you have to remove the disk and remove
 
 *DON'T, BUT DON'T*, add, remove or edit any file under /Alt-F (or under /mnt/sdxx/Alt-F) without executing steps 1 and 4!
 
+== Alternative ==
+
+There is however an alternative of the above procedure.
+
+  * -At the command line type `aufs.sh -n` # remount aufs with fsnotify
+  * -Manipulate files in /Alt-F/...
+  * -At the command line type `aufs.sh -r` # remount aufs with reval
+
+Mounting aufs with 'fsnotify' enables you to manipulates files in /Alt-F/ directly, without unmounting aufs, but it has performance issues under normal work, so don't forget to remount with 'reval' as soon as your changes are made.
+
+== Problems ==
+
 The existence of the /Alt-F directory has some undesirable and not obvious effects that turns me nuts from time to time -- removing this facility has been seriously considered more than once.
 
 The most notorious problem is that new files created in a directory which is being shadowed in disk, will be created on disk. Changing files in the shadowed directory, depending on the way they are saved, might end-up moving them to disk. Deleting a shadowed file seems to delete it, but only marks it for deletion, and it might reappear latter after a reboot while aufs is not yet mounted.
@@ -53,13 +65,9 @@ Because of this and other behavior, all setting files are copied to disk when au
 
 Also, there might exist problems with disk spindown, because some server process update files while they run, and if the updated files are being shadowed the disk will be spin-up.
 
-*Don't send bug reports or fill any issues* if you made changes to any system file this way!
-
-See http://lwn.net/Articles/324291/, http://lwn.net/Articles/325369/,  http://lwn.net/Articles/327738/ for further detail.
 
 Hope this help more that create problems!
 
-(`*`) Instead of step 2 and 4 you can also use in certain circumstances:
+*Don't send bug reports or fill any issues* if you made changes to any system file this way!
 
-  * 1- At the command line type `aufs.sh -n` # remount aufs with fsnotify
-  * 4- At the command line type `aufs.sh -r` # remount aufs with reval
+See http://lwn.net/Articles/324291/, http://lwn.net/Articles/325369/,  http://lwn.net/Articles/327738/ for further detail.
