@@ -35,7 +35,7 @@ and checkout the one of your choice, e.g.
 
 Then,
   
-	cd alt-f-read-only
+	cd alt-f-read-only/alt-f
 	export BLDDIR=<dir> # where you want the build tree, e.g. ~/Alt-F-build
 	export PATH=$PATH:$PWD/bin:$BLDDIR/build_arm/staging_dir/usr/bin: # PATH to host-tools and build made programs
 	./mkprepare.sh # build host-tools, put them in bin/
