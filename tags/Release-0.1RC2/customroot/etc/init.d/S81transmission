@@ -1,0 +1,51 @@
+#! /bin/sh
+
+set -e
+
+DESC="A Fast, Easy and Free Bittorrent client"
+NAME=transmission-daemon
+TYPE=user
+REQUIREDBY="automatic"
+
+CONFF=/var/lib/transmission
+JSON=settings.json
+
+OPTS="--logfile /var/log/transmission.log --config-dir=$CONFF -x /var/run/transmission.pid"
+
+TRANSMISSION_USER=transmission
+TRANSMISSION_GROUP=network
+
+# special flag to start-stop-daemon
+START_STOP=-x
+
+. $(dirname $0)/common
+
+case "$1" in
+	start)
+		eval $(awk '/"download-dir"/ { \
+				gsub(",|\\\\", "", $2); printf "DOWNLOAD_DIR=%s;", $2 } \
+			/"watch-dir"/ { \
+				gsub(",|\\\\", "", $2); printf "WATCH_DIR=%s;", $2 } \
+			/"incomplete-dir"/ { \
+				gsub(",|\\\\", "", $2); printf "INCOMPLETE_DIR=%s;", $2 }' \
+			"$CONFF/$JSON")
+
+		if ! test -d "$DOWNLOAD_DIR" -a -d "$WATCH_DIR" -a -d "$INCOMPLETE_DIR"; then
+			echo "$NAME: Directories does not exist, you must configure transmission first."
+			exit 1
+		fi
+
+		network=$(hostname -i | awk -F. '{printf "%d.%d.%d.*", $1,$2,$3}')
+		sed -i -e 's|.*"rpc-whitelist":.*|    "rpc-whitelist": "127.0.0.1,'$network'",|' \
+			"$CONFF/$JSON"
+		chown $TRANSMISSION_USER:$TRANSMISSION_GROUP "$CONFF/$JSON"
+
+		start $NAME -- $OPTS
+		;;
+
+	stop) stop $NAME ;;
+	status) status $NAME ;;
+	reload) reload $NAME ;;
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart|reload" ;;
+esac

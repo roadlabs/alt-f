@@ -1,0 +1,18 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ALT-F Help Page</title>
+</head><body>
+
+<center><h2>NFS Setup Help</h2></center>
+
+<strong>Delay NFS start on boot:</strong> NFS stores some client information on disk, for recovery on reboot
+in case of server or client crash. That information is stored in a sub-directory where Alt-F 
+packages are stored. At boot time, when NFS starts, the Alt-F directory might not yet be available
+and such recovery information is missing.<br>Checking this checkbox delays the NFS start until the
+Alt-F directory becomes available. Notice that if the checkbox is checked and the Alt-F directory
+never appears, then NFS will not auto-start.
+
+
+
+<br><button type=button onclick="history.back()">Back</button></body>

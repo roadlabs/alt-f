@@ -1,0 +1,24 @@
+#! /bin/sh
+
+DESC="Daemon to run jobs queued for later execution"
+NAME=atd
+#TYPE=sys
+
+. $(dirname $0)/common
+
+inits() {
+	if ! test -d /var/lib/atjobs; then
+		mkdir -p /var/lib/atjobs
+		mkdir -p /var/lib/atspool
+		touch /var/lib/atjobs/.SEQ
+		chown at:at /var/lib/atjobs /var/lib/atspool /var/lib/atjobs/.SEQ	
+	fi
+}
+
+case "$1" in
+	start) inits; start $NAME ;;
+	stop)	stop $NAME ;;
+	status)	status $NAME ;;
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac

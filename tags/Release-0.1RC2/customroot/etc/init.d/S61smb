@@ -1,0 +1,60 @@
+#!/bin/sh
+
+DESC="Samba Server (Windows)"
+TYPE=net
+NAME=smbd
+SMB_OPTS=-D
+NAME2=nmbd
+NMB_OPTS=-D
+
+RETVAL=0
+
+# Check that smb.conf exists.
+[ -f /etc/samba/smb.conf ] || exit 0
+
+. $(dirname $0)/common
+
+sinit() {
+	# Make directories.
+	mkdir -p /var/cache/samba
+	mkdir -p /var/log/samba
+	mkdir -p /var/lock/subsys
+}
+
+istart() {
+	sinit
+	start $NAME2 -- $NMB_OPTS
+	RETVAL2=$?
+
+	start $NAME -- $SMB_OPTS
+	RETVAL=$?
+
+	avahi add smb
+
+	[ $RETVAL -eq 0 -a $RETVAL2 -eq 0 ] && touch /var/lock/subsys/smb || RETVAL=1
+	return $RETVAL
+}	
+
+istop() {
+	stop $NAME
+	RETVAL=$?
+	rm -f /var/run/smbd.pid
+
+	stop $NAME2
+	RETVAL2=$?
+	rm -f /var/run/nmbd.pid
+
+	avahi remove smb
+
+	[ $RETVAL -eq 0 -a $RETVAL2 -eq 0 ] && rm -f /var/lock/subsys/smb || RETVAL=1
+	return $RETVAL
+}	
+
+case "$1" in
+	start) istart ;;
+	stop) istop ;;
+	restart) restart $NAME ;;
+	reload) reload $NAME ;;
+	status) status $NAME ;;
+	*) usage $0 "start|stop|status|restart|reload" ;;
+esac

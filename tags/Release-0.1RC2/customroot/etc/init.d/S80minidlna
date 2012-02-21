@@ -1,0 +1,61 @@
+#!/bin/sh -e
+
+NAME=minidlna
+DESC="MiniDLNA is a DLNA/UPnP-AV server."
+TYPE=user
+
+CONF_MINIDLNA=/etc/$NAME.conf
+MINIDLNA_USER=$NAME
+MINIDLNA_GROUP=multimedia
+MINIDLNA_ARGS=""
+
+. $(dirname $0)/common
+
+check_shares() {
+	if test -r "$CONF_MINIDLNA"; then
+		if grep -q '^#force_rescan=yes' $CONF_MINIDLNA; then
+			RESCAN="-R"
+		fi
+		MDLNA_DIR="$(awk -F= '/^media_dir/{printf "%s;", $2}' $CONF_MINIDLNA)"
+		OIFS="$IFS"; IFS=";"
+		for i in $MDLNA_DIR; do
+			if echo $i | grep -q ^/ ; then
+				mdir=$i
+			else
+				mdir=${i:2}
+			fi
+
+			if ! test -d "$mdir"; then
+				echo "$NAME: Share $mdir does not exists."
+				exit 1
+				#sed -i 's|^media_dir='$i'|# directory not found: &|' $CONF_MINIDLNA
+			else
+				conf_ok="yes"
+			fi
+		done
+		IFS="$OIFS"
+		if test -z "$conf_ok"; then
+			echo "$NAME: can't be started, no shares are configured." 
+			exit 1
+		fi
+		return 0
+	fi
+	echo "$NAME: Configuration file does not exists."
+	exit 1
+}
+
+case "$1" in
+
+	start)
+		check_shares
+		start $NAME -- $RESCAN $MINIDLNA_ARGS 
+		;;
+
+	stop) stop $NAME 1 ;;
+	status) status $NAME ;;
+	restart) restart $NAME ;;
+	*)
+		echo "Usage: $0 {start|stop|status|restart}"
+		exit 1
+		;;
+esac

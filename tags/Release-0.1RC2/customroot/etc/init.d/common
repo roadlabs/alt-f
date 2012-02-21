@@ -1,0 +1,180 @@
+
+# Add "enable" and "disable" options for all scripts.
+# Notice that S42inetd and uses enable/disable, but with an argument
+if test "$1" = "enable" -a -z "$2" ; then
+	echo "Enabling boot execution of $(basename $0)"
+	chmod +x $0
+	exit 0
+elif test "$1" = "disable" -a -z "$2" ; then
+	echo "Disabling boot execution of $(basename $0)"
+	chmod -x $0
+	exit 0
+fi
+
+# for process match, some processes need -n, the default, others -x
+if test -z "$START_STOP"; then
+	START_STOP=-n
+fi
+
+AVAHI_SRV_DIR=/etc/avahi/services
+
+# $1-add/remove $2-service name
+avahi() {
+	if ! test -d $AVAHI_SRV_DIR; then return 0; fi
+ 
+	if test "$1" = "add"; then
+		if test -f $AVAHI_SRV_DIR/$2.service-; then
+			mv $AVAHI_SRV_DIR/$2.service- $AVAHI_SRV_DIR/$2.service
+		fi
+	elif test "$1" = "remove"; then
+		if test -f $AVAHI_SRV_DIR/$2.service; then
+			mv $AVAHI_SRV_DIR/$2.service $AVAHI_SRV_DIR/$2.service-
+		fi
+	fi
+}
+
+# to use at start
+# start needed service if they are not running
+require() {
+	name=$1; shift
+	for i in $*; do
+		if ! rc$i status >& /dev/null; then
+			if ! rc$i start; then
+				echo \'$name\' can\'t be started, as \'$i\' is needed and can\'t be started.
+				exit 1
+			fi
+		fi
+	done
+}
+
+# to use at stop
+# don't stop if it is required by running services
+requiredby() {
+	name=$1; shift
+	for i in $*; do
+		if rc$i status >& /dev/null; then
+			echo \'$name\' can\'t be stopped, as it is needed by \'$i\' which is running.
+			exit 1
+		fi
+	done
+}
+
+# to use at stop, see if required services are running and try to stop them
+# if they are not required by other running service
+# $1 caller name, $* services to stop
+stoprequired() {
+	name=$1; shift
+	for i in $*; do
+		if rc$i status >& /dev/null; then
+			rc$i stop >& /dev/null 
+		fi
+	done
+}
+
+# to use at start, see if competing services are running
+# $1 caller name, $* services to check
+excludedby() {
+	name=$1; shift
+	for i in $*; do
+		if rc$i status >& /dev/null; then
+			echo \'$name\' cant be started, as it conflicts with \'$i\', which is running.
+			exit 1
+		fi
+	done
+}
+
+status() {
+	if start-stop-daemon -K -t -q $START_STOP $1; then
+		echo "$1 running"
+		return 0
+	else
+		echo "$1 stopped"
+		return 1
+	fi
+}
+
+# $1-crypt|linear
+dmstatus() {
+	if ! lsmod | grep -q ^dm_mod; then
+		return 1
+	fi
+	dmout=$(dmsetup ls --target $1)
+	if test -z "$dmout" -o "$dmout" = "No devices found"; then
+		return 1
+	else
+		for i in $dmout; do
+			if test "$(dmsetup info $i | awk '/State/{print $2}')" = "ACTIVE"; then
+				return 0
+			fi
+		done
+	fi
+}
+
+omsg() {
+	if test $1 = 0; then
+		echo "OK."
+	elif test -n "$2"; then
+		echo -e "Fail: $2"
+	else
+			echo "Fail."
+	fi
+	return $1	
+}
+
+start() {
+	if test -n "$EXCLUDEDBY"; then
+		excludedby $1 $EXCLUDEDBY
+	fi
+
+	if test -n "$REQUIRE"; then
+		require $1 $REQUIRE
+	fi
+
+ 	echo -n "Starting $1: "
+	start-stop-daemon -S -q -o -x $*
+	omsg $?
+}
+
+stop() {
+	if test -n "$REQUIREDBY"; then
+		requiredby $1 $REQUIREDBY
+	fi
+
+	sig=""
+	echo -n "Stopping $1: "
+	if test -n "$2"; then
+		sig="-s $2"
+	fi	
+	start-stop-daemon -K -q -o $sig $START_STOP $1
+	st=$?
+
+	if test -n "$REQUIRE"; then
+		while status $1 >& /dev/null; do usleep 200000; done
+		stoprequired $1 $REQUIRE
+	fi
+
+	omsg $st
+}
+
+restart() {
+	echo "Restarting $1: "
+	sh $0 stop
+	while start-stop-daemon -K -t -q $START_STOP $1; do usleep 200000; done
+	sh $0 start
+}
+
+reload() {
+	echo -n "Reloading $1: "
+	if test -z "$2"; then
+		sig=SIGHUP
+	else
+		sig=$2
+	fi
+	start-stop-daemon -K -q -s $sig $START_STOP $1
+	omsg $?
+}
+
+usage() {
+	echo "Usage: $1 {$2}"
+	exit 1
+}

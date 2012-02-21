@@ -1,0 +1,125 @@
+#!/bin/bash
+
+#set -x
+
+# customize root directory
+
+# script called by buildroot after packages are installed in root dir, but
+# before the root filesystem is built
+
+# 1-during install some packages install undesired files in root.
+# the files to remove from root before creating the filesystem:
+# this should be fixed in buildroot and packages.mk
+
+RMF="etc/resolv.conf etc/default/ntpd etc/random-seed
+etc/init.d/S20urandom etc/init.d/S99at etc/init.d/S13portmap etc/init.d/S40network etc/init.d/S50dropbear etc/init.d/S49ntp etc/init.d/S70vsftpd etc/init.d/S91smb
+var/spool var/log var/cache var/run var/pcmcia var/lib/pcmcia
+usr/doc usr/share/locale usr/swat/lang etc/init.d/S30dbus
+sbin/fsck.ext4dev sbin/mkfs.ext4dev
+usr/bin/ntpdate lib/udev"
+
+. .config 2> /dev/null
+kver=$BR2_KERNEL_THIS_VERSION.$BR2_KERNEL_PATCH_LEVEL
+
+# if BRIDGE is not set as a kernel module in the base firmware kernel, it will not load
+# the bridge module from kernel-modules.
+# So, build the kernel with BRIDGE module enabled, then remove the aditional modules.
+# to diferentiate between the base kernel and the pkg kernel, use BR2_PACKAGE_KERNEL_MODULES
+# The same as above applies to IPV6 and other modules
+
+# FIXME HOWEVER, THE FIRST make will reinstall modules (linux26 is a late target),
+# so TWO makes have to be done the first time!!!
+
+# the kernel modules in the base firmware:
+KMOD="./kernel/fs/isofs/isofs.ko ./kernel/fs/fat/vfat.ko ./kernel/fs/fat/msdos.ko ./kernel/fs/fat/fat.ko ./kernel/fs/cifs/cifs.ko ./kernel/fs/lockd/lockd.ko ./kernel/fs/nfsd/nfsd.ko ./kernel/fs/fuse/fuse.ko ./kernel/fs/nfs/nfs.ko ./kernel/fs/exportfs/exportfs.ko ./kernel/net/sunrpc/sunrpc.ko ./kernel/drivers/usb/class/usblp.ko ./kernel/drivers/usb/serial/usbserial.ko ./kernel/drivers/md/raid6_pq.ko ./kernel/drivers/md/raid0.ko ./kernel/drivers/md/raid456.ko ./kernel/drivers/scsi/scsi_wait_scan.ko ./kernel/crypto/aes_generic.ko ./kernel/crypto/crypto_algapi.ko ./kernel/crypto/krng.ko ./kernel/crypto/async_tx/async_pq.ko ./kernel/crypto/async_tx/async_xor.ko ./kernel/crypto/async_tx/async_raid6_recov.ko ./kernel/crypto/async_tx/async_tx.ko ./kernel/crypto/async_tx/async_memcpy.ko ./kernl/crypto/rng.ko ./kernel/crypto/xor.ko ./kernel/crypto/ansi_cprng.ko"
+
+if test -z "$BR2_PACKAGE_KERNEL_MODULES"; then
+	OPWD=$PWD;
+	cd $ROOTFS/lib/modules/$kver
+	for i in $(find . -name \*.ko); do
+		if ! echo $KMOD | grep -q $i; then
+			RMF="$RMF usr/lib/modules/$kver/$i"
+		fi
+	done
+	cd $OPWD
+fi
+
+# 2-customroot has some additional needed files, copy them to root
+find customroot/ \( -name \*~ -o -name .directory \) -delete
+cp -a customroot/* $1/
+find $1 -depth -name .svn -exec rm -rf {} \;
+
+# 3-but some files in customroot might belong to packages not currently
+# configured, remove them in this case
+BR2_PACKAGES="BR2_PACKAGE_TRANSMISSION BR2_PACKAGE_USHARE BR2_PACKAGE_MEDIATOMB BR2_PACKAGE_FUPPES BR2_PACKAGE_MINIDLNA BR2_PACKAGE_MT_DAAPD BR2_PACKAGE_CUPS BR2_PACKAGE_SAMBA_DOC BR2_PACKAGE_NTFS_3G_NTFSPROGS_NTFSPROGS BR2_PACKAGE_AVAHI BR2_PACKAGE_NETATALK BR2_PACKAGE_NETATALK2 BR2_PACKAGE_AUTOMATIC BR2_PACKAGE_FORKED_DAAPD BR2_PACKAGE_DBUS BR2_PACKAGE_ISCSITARGET BR2_PACKAGE_LVM2 BR2_PACKAGE_LVM2_DEVICE_MAPPER BR2_PACKAGE_CRYPTSETUP BR2_PACKAGE_STUNNEL BR2_PACKAGE_KERNEL_MODULES"
+
+BR2_PACKAGE_TRANSMISSION="etc/init.d/S81transmission usr/www/cgi-bin/transmission.cgi usr/www/cgi-bin/transmission_proc.cgi usr/www/transmission_hlp.html"
+BR2_PACKAGE_AUTOMATIC="etc/init.d/S82automatic etc/automatic.conf usr/www/cgi-bin/automatic.cgi usr/www/cgi-bin/automatic_proc.cgi usr/www/automatic_hlp.html"
+BR2_PACKAGE_USHARE="etc/init.d/S80ushare etc/ushare.conf usr/www/cgi-bin/ushare.cgi usr/www/cgi-bin/ushare_proc.cgi usr/www/ushare_hlp.html"
+BR2_PACKAGE_MEDIATOMB="etc/init.d/S80mediatomb usr/www/cgi-bin/mediatomb.cgi usr/www/cgi-bin/mediatomb_proc.cgi usr/www/mediatomb_hlp.html"
+BR2_PACKAGE_FUPPES="etc/fuppes etc/init.d/S80fuppes usr/www/cgi-bin/fuppes.cgi usr/www/cgi-bin/fuppes_proc.cgi usr/www/fuppes_hlp.html"
+BR2_PACKAGE_MINIDLNA="etc/minidlna.conf etc/init.d/S80minidlna usr/www/cgi-bin/minidlna.cgi usr/www/cgi-bin/minidlna_proc.cgi usr/www/minidlna_hlp.html"
+BR2_PACKAGE_MT_DAAPD="etc/mt-daapd.conf etc/mt-daapd.playlist etc/init.d/S80mt_daapd usr/www/cgi-bin/mt_daapd.cgi usr/www/cgi-bin/mt_daapd_proc.cgi usr/www/mt_daapd_hlp.html"
+BR2_PACKAGE_FORKED_DAAPD="etc/forked-daapd.conf etc/init.d/S80forked_daapd usr/www/cgi-bin/forked_daapd.cgi usr/www/cgi-bin/forked_daapd_proc.cgi usr/www/forked_daapd_hlp.html"
+
+BR2_PACKAGE_CUPS="etc/init.d/S42cups usr/www/cgi-bin/cups.cgi"
+BR2_PACKAGE_SAMBA_DOC="usr/swat/help/welcome.html"
+
+BR2_PACKAGE_NTFS_3G_NTFSPROGS_NTFSPROGS="usr/sbin/fsck.ntfs usr/sbin/fsck.ntfs-3g usr/sbin/mkfs.ntfs"
+
+BR2_PACKAGE_DBUS="etc/init.d/S20dbus"
+
+BR2_PACKAGE_AVAHI="etc/avahi etc/init.d/S50avahi_daemon"
+
+# FIXME: netatalk files are deleted, as they are the same in
+# BR2_PACKAGE_NETATALK and BR2_PACKAGE_NETATALK2,
+# which should not be configured simultaneously.
+# Perhaps creating a config netatalk suboption?
+# meanwhile this is tested bellow
+
+#BR2_PACKAGE_NETATALK="etc/init.d/S51afpd usr/www/cgi-bin/afpd.cgi usr/www/cgi-bin/afpd_proc.cgi usr/www/afpd_hlp.html"
+BR2_PACKAGE_NETATALK2="etc/init.d/S51afpd usr/www/cgi-bin/afpd.cgi usr/www/cgi-bin/afpd_proc.cgi usr/www/afpd_hlp.html"
+
+BR2_PACKAGE_ISCSITARGET="etc/init.d/S64iscsitarget"
+BR2_PACKAGE_LVM2_DEVICE_MAPPER="etc/init.d/S12device_mapper"
+BR2_PACKAGE_LVM2="etc/init.d/S14lvm usr/www/cgi-bin/Disk_lvm.men usr/www/cgi-bin/lvm.cgi usr/www/cgi-bin/lvm_proc.cgi usr/www/lvm_hlp.html"
+BR2_PACKAGE_CRYPTSETUP="etc/init.d/S14cryptsetup usr/www/cryptsetup_hlp.html usr/www/cgi-bin/Disk_cryptsetup.men usr/www/cgi-bin/cryptsetup.cgi usr/www/cgi-bin/cryptsetup_proc.cgi"
+BR2_PACKAGE_STUNNEL="etc/stunnel etc/init.d/S41stunnel"
+BR2_PACKAGE_KERNEL_MODULES="etc/init.d/S13modload"
+
+# see above comment
+if test -n "$BR2_PACKAGE_NETATALK2" -a \
+	-n "$BR2_PACKAGE_NETATALK"; then
+	echo "Error: netatalk and netatalk2 packages can't be used at the same time"
+	exit 1
+fi
+
+for i in $BR2_PACKAGES; do
+	if ! grep -q ^${i}= .config; then
+		f="$(eval echo \$$i)"
+		RMF="$RMF $f"
+	fi
+done
+
+for i in $RMF; do rm -rf $1/$i; done
+
+# 4-move some files to /usr, that will be lzma squashfs compressed
+#
+# as a matter of fact everything but busybox and libUclibc could be moved,
+# because we are using aufs (squashfs is read-only, but aufs does COW to a tmpfs)
+
+for i in $1/sbin/*; do
+	if ! test -h $i; then
+		mv $i $1/usr/sbin/
+	fi
+done
+
+# 5-no kernel modules are needed at boot time, so move them to /usr/lib
+# to squashfs-lzma them and save memory
+if ! test -d $1/lib/modules -a -h $1/lib/modules; then
+	cd $1
+	rm -rf usr/lib/modules
+	mv lib/modules usr/lib/
+	cd lib
+	ln -sf ../usr/lib/modules modules
+fi

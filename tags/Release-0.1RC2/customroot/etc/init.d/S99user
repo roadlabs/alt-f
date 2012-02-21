@@ -1,0 +1,120 @@
+#! /bin/sh
+
+DESC="Create diagnostics file and run user script"
+TYPE=user
+NAME=user
+
+CONF_MISC=/etc/misc.conf
+USERLOCK=/var/lock/userscript
+
+# inspired by "nogi"
+LOGF="alt-f.log"
+SEP="======================"
+
+. $(dirname $0)/common
+
+bootlog() {
+	logger "Services status:"
+	rcall status
+	for i in /mnt/*; do
+		if mountpoint $i >& /dev/null; then
+			writelog
+		fi
+	done
+}
+
+writelog() {
+	echo -e "$SEP Alt-F $(cat /etc/Alt-F) $SEP\n" > $i/$LOGF
+	date >>  $i/$LOGF
+
+	echo -e "\n\n$SEP BOARD $SEP\n" >> $i/$LOGF
+	cat /tmp/board >> $i/$LOGF
+
+	echo -e "\n\n$SEP Flashed Firmware $SEP\n" >> $i/$LOGF
+	dd if=/dev/mtdblock2 ibs=64 count=1 2> /dev/null | strings >> $i/$LOGF
+
+	echo -e "\n\n$SEP DMESG $SEP\n" >> $i/$LOGF
+	dmesg >> $i/$LOGF
+
+	echo -e "\n\n$SEP SYSLOG $SEP\n" >> $i/$LOGF
+	logread >> $i/$LOGF
+
+	echo -e "\n\n$SEP BOOTLOG $SEP\n" >> $i/$LOGF
+	cat /var/log/boot.log >> $i/$LOGF
+
+	echo -e "\n\n$SEP ETHTOOL $SEP\n" >> $i/$LOGF
+	ethtool eth0 >> $i/$LOGF
+
+	echo -e "\n\n$SEP IFCONFIG $SEP\n" >> $i/$LOGF
+	ifconfig >> $i/$LOGF
+
+	echo -e "\n\n$SEP ROUTE $SEP\n" >> $i/$LOGF
+	route -n >> $i/$LOGF
+
+	echo -e "\n\n$SEP RESOLVER $SEP\n" >> $i/$LOGF
+	cat /etc/resolv.conf >> $i/$LOGF
+
+	echo -e "\n\n$SEP HOSTS $SEP\n" >> $i/$LOGF
+	cat /etc/hosts >> $i/$LOGF
+
+	echo -e "\n\n$SEP RAID $SEP\n" >> $i/$LOGF
+	if test -f /proc/mdstat; then
+		cat /proc/mdstat >> $i/$LOGF
+	else
+		echo None  >> $i/$LOGF
+	fi
+
+	echo -e "\n\n$SEP MOUNT $SEP\n" >> $i/$LOGF
+	cat /proc/mounts >> $i/$LOGF
+
+	echo -e "\n\n$SEP TOP $SEP\n" >> $i/$LOGF
+	top -bn1 >> $i/$LOGF
+
+	chmod a+rw $i/$LOGF
+}
+
+if test -f "$CONF_MISC"; then
+	. $CONF_MISC
+else
+	USER_LOGFILE="yes"
+fi
+
+case "$1" in
+	start)
+		echo -n "Starting $NAME: "
+
+		if test "$USER_LOGFILE" = "yes"; then
+			bootlog
+		fi
+
+		if test -x "$USER_SCRIPT" -a ! -f $USERLOCK; then
+			touch $USERLOCK
+			$USER_SCRIPT start &
+		fi
+
+		echo "OK."
+		;;
+
+	stop)
+		echo -n "Stopping $NAME: "
+		if test -x "$USER_SCRIPT" -a -f $USERLOCK; then
+			$USER_SCRIPT stop &
+			rm $USERLOCK
+		fi
+		echo "OK."
+		;;
+
+	status)
+		if test -x "$USER_SCRIPT" -a -f $USERLOCK; then
+			echo "$NAME started."
+		else
+			echo "$NAME stopped."
+			exit 1
+		fi
+		;;
+
+	restart) restart $NAME
+		;;
+
+	*) usage $0 "start|stop|status|restart" ;;
+esac
