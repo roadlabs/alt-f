@@ -5,7 +5,7 @@
 If for whatever reason you wish to stop using RAID1, you already have valuable data on it
 and don't want to loose it, and you haven't flashed Alt-F (you are running it "on-top" of
 the vendor's firmware, using the "reloaded" mode), then you can follow the procedure bellow,
-contributed by John L.
+contributed by John "strongline" L.
 
 If however you have flashed Alt-F, you can just use the RAID web page and, with a running array,
 select Operations->Destroy(*); you will be left with your data duplicated on each of the
