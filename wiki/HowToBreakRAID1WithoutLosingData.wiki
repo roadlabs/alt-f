@@ -1,16 +1,13 @@
-#summary How to break RAID 1 without losing data
+#summary How to convert RAID1 to a "standard" filesystem without losing your data
 
 {{{
 
-If for whatever reason you wish to stop using RAID1, you already have valuable data on it
-and don't want to loose it, and you haven't flashed Alt-F (you are running it "on-top" of
-the vendor's firmware, using the "reloaded" mode), then you can follow the procedure bellow,
-contributed by John "strongline" L.
+If you haven't flashed Alt-F and for whatever reason you wish to stop using RAID1 and start using a "standard" filesystem, keeping all your data, then you can follow the procedure bellow, contributed by John "strongline" L.
 
 If however you have flashed Alt-F, you can just use the RAID web page and, with a running array,
 select Operations->Destroy(*); you will be left with your data duplicated on each of the
-RAID1 components and you can mount and use them using the Disk->Filesystem web page.
-(*) - for RC2 you can disregard the warning given in the confirmation dialogue saying that all
+previous RAID1 components and you can then mount and use them using the Disk->Filesystem web page.
+(*) - for Alt-F-0.1RC2 you can disregard the warning given in the confirmation dialogue saying that all
 data will be lost, as that don't apply to RAID1.
 
 The more complex procedure described bellow by John L. was necessary because there was the need
