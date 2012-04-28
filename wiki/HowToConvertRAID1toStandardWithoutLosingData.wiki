@@ -1,0 +1,72 @@
+#summary How to convert RAID1 to a "standard" filesystem without losing your data
+
+{{{
+
+If you haven't flashed Alt-F and for whatever reason you wish to stop using RAID1
+and start using a "standard" filesystem, keeping all your data, then you can follow
+the procedure bellow, contributed by John "strongline" L.
+
+If however you have flashed Alt-F, you can just use the RAID web page and, with a running array,
+select Operations->Destroy(*); you will be left with your data duplicated on each of the
+previous RAID1 components and you can then mount and use them using the Disk->Filesystem web page.
+(*) - for Alt-F-0.1RC2 you can disregard the warning given in the confirmation dialogue saying that all
+data will be lost, as that don't apply to RAID1.
+
+The more complex procedure described bellow by John L. was necessary because there was the need
+to guarantee that upon reboot the vendor's firmware would continue recognizing the disks
+filesystem and booting Alt-F.
+
+For a more in-depth discussion see
+https://groups.google.com/forum/?fromgroups#!topic/alt-f/xu1M1JbqqU4
+
+How to break RAID 1 without losing data
+=======================================
+
+1.      Backup all you data.
+        Although this procedure was tested successfully, one should always prepare for the worst.
+
+2.      Stop all services
+        System -> Utilities -> StopAll
+        Your web UI will still be accessible
+        
+3.      Remove one disk out of RAID. Let's suppose you want to remove left first
+        Disk -> RAID -> Component -> Remove Left
+
+4.      Clear RAID info from the disk that you just removed
+        Disk -> RAID -> Component -> Clear Left
+        
+5.      At this point, left disk becomes a standalone disk. File system on it should be mounted
+        automatically and accessible. Or you can mount it manually. You can/should do a
+        compare between this new fs and md0(the degraded RAID) to make sure the left disk
+        contains all the data.
+        
+6.      Eject Left disk
+        Disk -> Utilities -> Eject
+        
+        Alternatively, you can choose to shutdown the server and carry next step if you
+        are not comfortable with hot un-plug. In my test, hot plug/un-plug worked very well.
+        
+7.      Physical remove left disk. If you have shutdown the unit, power it back up, it
+        will start on right disk as degraded RAID 1
+        
+        Step 6 and 7 is done as precaution measure. Left disk can serve as an offline backup
+        in case the unit doesn't boot up once RAID is broken
+
+8.      Destroy RAID
+        Disk -> RAID -> Destroy
+        
+9.      Right disk becomes a standalone disk, fs on it should be mounted and accessible
+
+10.     [Optional, but strongly recommended]Reboot the unit to make sure it can boot from
+        single right disk and contents are accessible
+        
+11.     Plug back left disk,  ALT-F should just recognizes it and mount it.
+        Again, as mentioned in step 6, if you are not comfortable about hot plug, you can
+        shutdown the unit and plug
+        
+That's it! It's actually surprisingly easy. You don't even need to reboot the unit
+in the whole process if you choose to.
+This procedure is tested on 01RC2 running on top of stock firmware 1.09.
+Same procedure should be more reliable if you already flashed Alt-F.
+
+}}}
