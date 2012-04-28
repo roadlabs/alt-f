@@ -1,0 +1,27 @@
+#summary How to convert a "standard" filesystem to RAID1 keeping all your data
+
+{{{
+
+If you have a one disk "standard" filesystem and which to convert it to RAID1,
+you can follow one of the following procedures:
+
+A:
+-Create a new degraded RAID1 with your new disk using Disk->Wizard (1)
+-Copy all data from the old "standard" partition to the new RAID1 using Setup->Folders
+-Verify that the data in the RAID1 is fine
+-Change the old disk "standard" partition type to RAID (2) using Disk->Partitioner
+-Add the old disk RAID partition to the new RAID as a new component using Disk->RAID
+
+B:
+-Shrink your current "standard" filesystem using Disk->Filesystem
+-Change the "standard" partition type to RAID (2) using Disk->Partitioner
+-Create a degraded RAID1 using the now RAID partition using Disk->RAID
+-Enlarge the filesystem contained in the RAID using Disk->Filesystem
+-Add a new disk and follow the "How to fix a degraded RAID1 wiki"
+
+NOTES:
+
+(1)-Make sure that the new disk in the only disk checked in the Disk Wizard upper section!
+(2)-Make sure to only uncheck the "Keep" check-box for the "standard" partition, and then only change its type from "linux" to "RAID" -- don't change anything else!
+
+}}}
