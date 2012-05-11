@@ -46,6 +46,8 @@ Choose one the methods bellow:
   Download Alt-F-<version>.bin and use it as if it was a D-Link supplied firmware file.
   If you are already using Alt-F, using one of the 1-3 above methods, download
   Alt-F-<version>.bin and use the Alt-F firmware upgrade web page to flash it.
+
+  If you are using ffp packages, read 3 above, as it still applies to this installation scenario.
  
   Alt-F firmware upgrade web page can flash the vendor supplied firmware, so
   you can always do a "downgrade".
