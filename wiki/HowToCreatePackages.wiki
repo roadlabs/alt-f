@@ -13,7 +13,8 @@ is a three step process. But first:
 Step 0: Building all Alt-F Packages
 ===================================
 
-Seldon a package can be build without other packages support, specially libraries. It is thus necessary that the new package be built in the Alt-F package build environment.
+Seldon a package can be build without other packages support, specially libraries.
+It is thus necessary that the new package be built in the Alt-F package build environment.
 
 Alt-F source has three configuration files available:
 
