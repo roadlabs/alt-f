@@ -1,4 +1,4 @@
-#summary Description on the unity buttons and leds behaviour
+#summary *Everybody should read*: Description on the unity buttons and leds behaviour
 
 = Introduction =
 
@@ -10,17 +10,12 @@ To expand the small possibilities that those devices offer, they must perform
 different actions depending on how long they are pressed,
 and indicate different status using different blink rates. 
 
-= Details =
+= LED Details =
 
 -During powerup, the blue power led blinks at a fast rate
 
--*For developers*:
-if "initdbg" is recognized in the kernel command line, the boot process stops before init;
-if the kernel has auto-configured the network (ip=... in the kernel command line) then the amber leds will blink alternately every four seconds and you know that you can telnet the box;
-if both amber leds blink simultaneously once in every 4 seconds, the network is not setup and you can only use the serial port to connect to the box.
-
 -If the box was not cleanly shutdown, then filesystems are not clean and a filesystem
-check (fsck) is performed, during which the blue power led blinks with a slow earthbeat pace -- the boot process stops while the filesystems are being checked.
+check (fsck) is performed, during which the blue power led blinks with a slow hearthbeat pace -- the boot process continues while the filesystems are being checked, but filesystems data can't be accessed until the check is finish.
 
 -When a disk or USB-disk/pen are hotpluged, the fsck step will be performed if needed, and the blue power led blink with a slow earthbeat pace.
 
@@ -33,8 +28,14 @@ both amber leds are turned steadly on.
 
 -When a disk spins-down, the corresponding amber led start flashing, with a very short on time and a very long off time.
 
-The info bellow was copied from the Services->System->sysctrl->Configure help page,
-available though the "?" icon present at the right of the page title.
+-*For developers*:
+if "initdbg" is recognized in the kernel command line, the boot process stops before init;
+if the kernel has auto-configured the network (ip=... in the kernel command line) then the amber leds will blink alternately every four seconds and you know that you can telnet the box;
+if both amber leds blink simultaneously once in every 4 seconds, the network is not setup and you can only use the serial port to connect to the box.
+
+= Buttons Actions =
+
+The info bellow was copied from the Services->System->sysctrl->Configure help page, available though the "?" icon present at the right of the page title.
 
 1. Three seconds after you start pressing the box front button, the right amber led starts flashing, and if you release the button the box will do a controlled reboot, but *first* will execute the script that you specified in the "Front button 1st cmd entry".
 (configure it using Services->System->sysctrl->Configure)
@@ -47,6 +48,8 @@ available though the "?" icon present at the right of the page title.
 4. Finally, if you press the box back button for one or two seconds, both leds will start flashing, and the script that you specified in the "Back button cmd" will be executed.
 (configure it using Services->System->sysctrl->Configure)
 
+== Recovery Actions ==
+
 The back button also has two recovery actions if the "Enable Recovery" checkbox in
 Services->System->sysctrl->Configure is checked:
 
@@ -55,4 +58,4 @@ Services->System->sysctrl->Configure is checked:
 4.2 As a last safeguard, if you press the back button for more that twenty seconds, all the settings saved in flash will be erased, and the box will do a controlled reboot. This is a last resort safeguard, in case you mess the box configuration so much that you can't do anything with it; after the reboot the box will behave as if no settings has ever been saved, and you have to struggle to find its IP (if you have a DHCP server enabled in your network, the box will use it). 
 
 
-For 0.1B6 the amber leds flash twice a second, so its easy to count seconds :)
+For 0.1B6 onwards the amber leds flash twice a second, so its easy to count seconds :)
