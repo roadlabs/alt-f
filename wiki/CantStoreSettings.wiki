@@ -6,12 +6,12 @@ Settings can't be saved when using System->Settings->SaveSettings. It fails with
 
 = Details =
 
-Flash space for settings is scarce (64KB) and is used both by Alt-F and the vendor's firmware, so it is very likely that no available flash space will exist when trying to save Alt-F settings.
+Flash space for settings is scarce (64KB) and is used both by Alt-F and the vendor's firmware, so it is possible that no available flash space will exist when trying to save Alt-F settings, depending on the vendor's firmware settings.
 
 Alt-F doesn't automatically remove the vendor's configuration files from flash in the eventuality that the user wants to reflash it back or Alt-F is being used through the reloaded (funplug) method.
 The only exception is that an unneeded file, named "system.log", is removed from flash. This will mitigate the problem, but will not solve it.
 
-When Alt-F is flashed this problem does not happens, and it is possible to store up to eight sets of settings, each one tagged with date/time of creation.
+When Alt-F is flashed this problem does not happens, so settings can be safely cleared and it is possible to store up to eight sets of settings, each one tagged with date/time of creation.
 
 As there are two places in flash where to store settings, and Alt-F only uses one of them, the other always has the last vendor's settings; when re-flashing a vendor's firmware, Alt-F prompts you for recovering the vendor's settings stored in the second location into the first. It was not tested if this will in fact fully restore the vendor's settings.
 
