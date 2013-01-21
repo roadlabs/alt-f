@@ -3,6 +3,8 @@
 
 = How-to setup FHEM to run on Alt-F =
 
+Contributed by Gael Bringout
+
 == What is FHEM ? ==
 [http://www.fhem.de From the official web site :]
  Fhem is a GPL'd perl server for house automation. It is used to automate some common tasks in the household like switching lamps / shutters / heating / etc. and to log events like temperature / humidity / power consumption.
@@ -68,6 +70,14 @@ Then, from the web interface, install :
     # kernel-modules    2.6.35.14-2
    
 If you have downloaded the perl package [http://goo.gl/TA5f2 Device::SerialPort], please extract it somewhere on the NAS. Supose you have extracted to "/mnt/ExtUSB/Users/gael/arch". Then create the directories and copy the file whith the following command :
+
+[jc: comment]
+Bellow, you should't directly use '/Alt-F' in your file paths, as that can turn the system unstable.
+Whenever a file is created, it should appear also under the /Alt-F folder as long as all its parent folder already exists under /Alt-F.
+E.g., if you want to create a file under /usr/lib/myfolder1/myfolder2/myfile that also appears as
+/Alt-F/usr/lib/myfolder1/myfolder2/myfile, make sure that /usr/lib/myfolder1/myfolder2 exists, if not then create all its patch components, one after the other.
+A simpler alternative will be to first use the 'aufs.sh -n' command. In that case you can directly manipulate files under /Alt-F, and after finishing use the command 'aufs.sh -r'
+[endcomment]
 
  mkdir -p /Alt-F/usr/lib/perl/auto/Device/SerialPort
  cp /mnt/ExtUSB/Users/gael/arch/auto/Device/SerialPort/SerialPort.bs /Alt-F/usr/lib/perl/auto/Device/SerialPort
