@@ -19,7 +19,8 @@ the mk*.sh scripts, the package/Alt-F-utils directory, and the host-tools
 directory.
 
 If you really want to try to build Alt-F, you must choose to checkout
-the current development tree, unstable, or a stable release.
+the current development tree, unstable (you should not flash it nor use it to flash),
+or a stable release.
 
 To checkout the development tree, do:
 
@@ -35,7 +36,7 @@ and checkout the one of your choice, e.g.
 
 Then,
   
-	cd alt-f-read-only/alt-f
+	cd alt-f-read-only
 	export BLDDIR=<dir> # where you want the build tree, e.g. ~/Alt-F-build
 	export PATH=$PATH:$PWD/bin:$BLDDIR/build_arm/staging_dir/usr/bin: # PATH to host-tools and build made programs
 	./mkprepare.sh # build host-tools, put them in bin/
