@@ -55,11 +55,11 @@ The first goal is obvious to achieve with a NAS system running Alt-F RC2. To mee
 
 So here, the whole system will be setup on :
 
-	/mnt/ExtUSB
+	`/mnt/ExtUSB`
 	
 My user folder is
 
-	/mnt/ExtUSB/Users/gael
+	`/mnt/ExtUSB/Users/gael`
 	
 Then, from the web interface, install :
 	# Alt-F Packages
@@ -68,61 +68,70 @@ Then, from the web interface, install :
 	
 If you have downloaded the perl package [http://goo.gl/TA5f2 Device::SerialPort], please extract it somewhere on the NAS. Supose you have extracted to "/mnt/ExtUSB/Users/gael/arch". Then create the directories and copy the file whith the following command :
 
+{{{
+ aufs.sh -n # always use this command first when directly modifying files under the /Alt-F directory
  mkdir -p /Alt-F/usr/lib/perl/auto/Device/SerialPort
  cp /mnt/ExtUSB/Users/gael/arch/auto/Device/SerialPort/SerialPort.bs /Alt-F/usr/lib/perl/auto/Device/SerialPort
  cp /mnt/ExtUSB/Users/gael/arch/auto/Device/SerialPort/SerialPort.so /Alt-F/usr/lib/perl/auto/Device/SerialPort
 
  mkdir -p /Alt-F/usr/lib/perl/Device/
  cp /mnt/ExtUSB/Users/gael/arch/Device/SerialPort.pm /Alt-F/usr/lib/perl/Device
+}}}
  
 Good, you have just finished to install the SerialPort package for perl !
 
 Then, download and extract the FHEM package (note that as today (January 2013) the last stable release is the 5.3.)
-
+{{{
  cd /mnt/ExtUSB/Users/gael/
  wget http://fhem.de/fhem-5.3.tar.gz
  tar -zxvf fhem-5.3.tar.gz
- 
+}}} 
 Now, you will have to update the Makefile from FHEM to adapt it to Alt-F. It is situated here : /mnt/ExtUSB/Users/gael/fhem-5.3/Makefile. Open the Makefile with your prefered files editing program. The first line are :
 
+{{{
 RELATIVE_PATH=YES
 BINDIR=/opt/fhem
 MODDIR=$(BINDIR)
 VARDIR=$(BINDIR)/log
 MANDIR=$(BINDIR)/docs
 ETCDIR=$(BINDIR)
- 
+}}}
+
 change them for something like:
 
+{{{
 RELATIVE_PATH=YES
 BINDIR=/mnt/ExtUSB/Users/gael/software/fhem
 MODDIR=$(BINDIR)
 VARDIR=$(BINDIR)/log
 MANDIR=$(BINDIR)/docs
 ETCDIR=$(BINDIR)
+}}}
 
 (note that you may have to change the permission to the file to be able to save the change)
 To change the permission on the file :
 
- chmod 777 /mnt/ExtUSB/Users/gael/fhem-5.3/Makefile
+ `chmod 777 /mnt/ExtUSB/Users/gael/fhem-5.3/Makefile`
  
 Then, we will install FHEM with the pgm2 interface :
 
+{{{
  cd /mnt/ExtUSB/Users/gael/fhem-5.3/
  make
+}}}
  
 Now, load the driver in order to use the CUL device :
 
- insmod /mnt/ExtUSB/Alt-F/usr/lib/modules/2.6.35.14/kernel/drivers/usb/class/cdc-acm.ko
+ `insmod /mnt/ExtUSB/Alt-F/usr/lib/modules/2.6.35.14/kernel/drivers/usb/class/cdc-acm.ko`
  
 Configure the fhem.cfg files as you want it. Use the next command in the fhem.cfg to correctly load the CUL device in FHEM :
-
+{{{
  define CUL1 CUL /dev/ttyACM0@9600 1422
  [...]
- 
+}}} 
 Finally, launch FHEM (assuming you saved the fhem.cfg files at the same position as I do)
  
-  perl /usr/bin/fhem.pl /mnt/ExtUSB/Users/gael/FHEM/fhem.cfg
+  `perl /usr/bin/fhem.pl /mnt/ExtUSB/Users/gael/FHEM/fhem.cfg`
   
 Enjoy your fully fonctionnal FHEM installation !
 
@@ -153,16 +162,16 @@ Then, you will have to configure the CPAN module in order set the correct folder
 
 So, type in a console :
 	
- perl -MCPAN -e shell
+ `perl -MCPAN -e shell`
 
 or, if you  it is not the first time you run this wizard, you can type
-
+{{{
  perl
  o conf init
-
+}}}
 Here, you will have a lot of question. Basicly put the default choice everytime, if there is nothing said about a folder or a directorie. If the settings is about a directorie, just add the correct command to put the files in your user folder. In my case that was :
 
- /mnt/ExtUSB/Users/gael/
+ `/mnt/ExtUSB/Users/gael/`
  
 Here is exactly what I did for my setup :
 
@@ -380,22 +389,22 @@ Here is exactly what I did for my setup :
 
 Now, you want to build the module. As it may be long (especially if you have to re-download and re-do all the metadata), you want to be able to close your telnet/ssh command. Otherwise, it will just take around 15 minutes to build everything. To be able to close your consol, used this command :
 
- nohup cpan Device::SerialPort > /mnt/ExtUSB/Users/gael/PerlReport.txt
+ `nohup cpan Device::SerialPort > /mnt/ExtUSB/Users/gael/PerlReport.txt`
 
 This will put all the consol output to the file PerlReport.txt
 
 
 Then, your files are there :
- /mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.bs
+ `/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.bs`
 and
- /mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.so
+ `/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.so`
 and
- /mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/Device/SerialPort.pm
+ `/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/Device/SerialPort.pm`
  
 Your are done ! Congratulation!
 
 == 3 : Example of my fhem.cfg file ==
-
+{{{
 attr global autoload_undefined_devices 1
 attr global logfile /mnt/ExtUSB/Users/gael/FHEM/log/fhem/fhem-%Y-%m.log
 attr global modpath /mnt/ExtUSB/Alt-F/usr/share/fhem
@@ -432,3 +441,4 @@ attr FileLog_FHT.Bureau room Bureau
 define weblink_FHT.Bureau weblink fileplot FileLog_FHT.Bureau:fht:CURRENT
 attr weblink_FHT.Bureau label "FHT.Bureau Min $data{min1}, Max $data{max1}, Last $data{currval1}"
 attr weblink_FHT.Bureau room Bureau
+}}}
