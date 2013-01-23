@@ -275,13 +275,16 @@ This will put all the consol output to the file PerlReport.txt
 
 Then, your files are there :
 {{{
-/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.bs}}}
+/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.bs
+}}}
 and
 {{{
-/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.so}}}
+/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/auto/Device/SerialPort/SerialPort.so
+}}}
 and
 {{{
-/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/Device/SerialPort.pm}}}
+/mnt/sdb1/Users/gael/.cpan/build/Device-SerialPort-1.04-RANDOMLETTER/blilb/arch/Device/SerialPort.pm
+}}}
  
 Your are done ! Congratulation!
 
