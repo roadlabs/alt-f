@@ -3,7 +3,7 @@
 
 = How-to setup FHEM to run on Alt-F =
 
-Contributed by Gaël Bringot
+Contributed by Gaël Bringout
 
 == What is FHEM ? ==
 [http://www.fhem.de From the official web site :]
