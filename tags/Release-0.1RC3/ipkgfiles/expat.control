@@ -1,0 +1,9 @@
+Package: expat
+Depends: ipkg
+Version: 2.0.1-3
+Description: The Expat XML Parser.
+Architecture: arm
+Priority: optional
+Section: admin
+Source: http://expat.sourceforge.net
+Maintainer: jcard

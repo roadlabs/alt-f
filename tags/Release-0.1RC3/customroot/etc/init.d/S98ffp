@@ -1,0 +1,36 @@
+#! /bin/sh
+
+DESC="Run ffp initialization script"
+#TYPE=sys
+NAME=ffp
+
+. $(dirname $0)/common
+
+iffp() {
+	if test -f /ffp/etc/rc; then
+		if test -x /ffp/etc/rc; then
+			/ffp/etc/rc $1
+			echo "OK."
+		else
+			echo "Fail."
+			exit 1
+		fi
+	else
+		echo "No ffp instalation found."
+		exit 1
+	fi
+}
+
+case "$1" in
+	start)
+		echo -n "Starting $NAME: "
+		iffp start
+		;;
+	stop)
+		echo -n "Stopping $NAME: "
+		iffp stop
+		;;
+	status) status $NAME ;;
+	restart) restart $NAME ;;
+	*) usage $0 "start|stop|status|restart" ;;
+esac

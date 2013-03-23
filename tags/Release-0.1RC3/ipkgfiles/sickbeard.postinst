@@ -1,0 +1,49 @@
+#!/bin/sh
+
+SITE=https://github.com/midgetspy/Sick-Beard/tarball
+TBALL=master
+
+SBPROG=/Alt-F/opt/SickBeard
+SBPROGL=/Alt-F/opt/Sick-Beard
+SBCONFD=/etc/sickbeard
+SBHOME=/var/lib/sickbeard
+
+if ! wget --progress=dot:mega -O /tmp/$TBALL $SITE/$TBALL; then
+	rm -f /tmp/$TBALL
+	echo "Downloading of SickBeard from its homepage page failed."
+	exit 1
+fi
+
+mkdir -p $SBPROG
+if ! tar -C /Alt-F/opt -xzf /tmp/$TBALL >& /dev/null; then
+	rm -f /tmp/$TBALL
+	echo "Extraction of SickBeard failed."
+	exit 1
+fi
+rm -f /tmp/$TBALL
+
+if test -d $SBPROGL; then
+	mv $SBPROGL $SBPROG
+fi
+
+cp -a /Alt-F/opt/midgetspy-Sick-Beard-*/* $SBPROG
+rm -rf /Alt-F/opt/midgetspy-Sick-Beard-*
+
+addgroup -S -g 200 TV
+if id sickbeard >& /dev/null; then
+	deluser sickbeard
+fi
+adduser -S -g "Sick Beard user" -G TV -u 18 -h $SBHOME sickbeard
+
+chown -R sickbeard:TV $SBPROG $SBCONFD
+ln -sf /usr/sbin/rcscript /sbin/rcsickbeard
+
+# reuse box certificate -- to remove after RC3
+BOX_PEM=/etc/ssl/certs/vsftpd.pem
+BOX_CRT=/etc/ssl/certs/server.crt
+BOX_KEY=/etc/ssl/certs/server.key
+
+if ! test -f $BOX_CRT; then
+	sed -n '/BEGIN CERTIFICATE/,/END CERTIFICATE/p' $BOX_PEM > $BOX_CRT
+	sed -n '/BEGIN PRIVATE KEY/,/END PRIVATE KEY/p' $BOX_PEM > $BOX_KEY
+fi

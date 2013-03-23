@@ -1,0 +1,9 @@
+Package: openssh
+Description: A free version of the SSH protocol suite of network connectivity tools.
+Version: 6.1p1
+Depends: ipkg
+Architecture: arm
+Priority: optional
+Section: admin
+Source: http://www.openssh.com/
+Maintainer: jcard
