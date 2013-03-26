@@ -29,8 +29,8 @@ and augmented boot time, as two systems has to be booted: D-Link first followed 
  disabling all servers such as iTunes, UPnP AV and ftp.
  Stopping the BT client, DDNS client, LLTD, etc might also help.
 
--If you are already using the "on top"/"reloaded" method, to upgrade proceed as for a new
- installation, replacing the existing fun_plug file.
+-If you are already using the "on top"/"reloaded" method, in order to upgrade remove first
+ the 'alt-f' folder and proceed as for a new installation, replacing the existing fun_plug file.
 
 -Clear the cache of the browser after rebooting, as this often causes problems.
  Also, try using Chrome or Firefox, as IE might also cause problems (and was not tested at all).
