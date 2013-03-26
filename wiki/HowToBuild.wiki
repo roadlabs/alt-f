@@ -59,14 +59,14 @@ directory is processed by the "configfs" script, that copied the
 contents of "customroot" to it and also remove some other files.
 
 To create an initramfs, do
-	./mkinitramfs.sh <sqfs|gz|lzma>
+	./mkinitramfs.sh <sqmtd|sqfs|gz|lzma>
 
 Some mk*.sh scripts will ask for the root password; this is needed to
 mount the generated ext2 rootfs as a loop device and manipulate it. See
 the source.
 
 mkinitramfs.sh created the initramfs in $BLDDIR/binaries/dns323,
-"rootfs.arm.cpio-sq.lzma", that you can use together with "zImage" and
+"rootfs.arm.*", that you can use together with "zImage" and
 fonz "reloaded" to boot the new kernel.
 The kernel cmdline is simply "console=ttyS0,115200". You can use other
 kernel recognized options, and also some Alt-F recognized options such
@@ -83,22 +83,38 @@ gziped cpio initramfs, faster to create and boot but using too much
 memory at runtime, or "lzma", that crates a lzma compressed cpio
 initramfs, still smaller in size but slower to boot.
 
+Since RC3, "sqmtd" has to be used as the mkinitramfs.sh argument, which
+generates an initrd, i.e. a compressed image of the root filesystem.
+That initrd is loop mounted directly from flash memory at runtime by
+the "/init" script, saving 6.5MB of RAM.
+
+Although care has been taken, I can't guaranteed that all possible combinations
+or arguments to the "mk*.sh" scripts will work with all Alt-F versions.
+Until RC3, "sqfs" was the default, since then "sqmtd", is the default.
+This is *particularly* important when flashing the rootfs, as the kernel has
+to be built to support it.
+Thus, don't use "sqmtd" with pre-RC3 kernels, nor "sqfs" with post-RC3 kernels
+if you intent to flash the resulting images.
+Also, you can't flash the rootfs while if you are running from flash.
+The Alt-F "Firmware Upgrade" page takes the necessary steps to allow flashing,
+doing a special reboot as explained in the next section.
+
 If you are already using Alt-F, you can copy zImage and
-rootfs.arm.cpio-sq.lzma (or rootfs.arm.cpio.gz or rootfs.arm.cpio.lzma)
-to the box "/root" directory and issue a "reboot" command.
+rootfs.arm.sqmtd ( or rootfs.arm.cpio-sq.lzma, or rootfs.arm.cpio.gz
+or rootfs.arm.cpio.lzma) to the box "/root" directory and issue a "reboot" command.
 The /etc/init.d/rcE script will recognize these files and will
 do a kexec after doing all other cleanup, thus reloading a new kernel
 and initramfs without an actual hardware reboot.
 
 To create a "reloaded" tar file, just
-	./mkreloaded.sh <sqfs|gz|lzma>
+	./mkreloaded.sh <sqmtd|sqfs|gz|lzma>
 
 and you will find it in $BLDDIR/binaries/dns323/Alt-F-0.1B1.tar.
 It is not compressed as it makes no sense to compress it (it is already
 internally compressed).
 
 To create a firmware image, just type
-	./mkfw.sh <sqfs|gz|lzma>
+	./mkfw.sh <sqmtd|sqfs|gz|lzma>
 
 and again in $BLDDIR/binaries/dns323 you will found "Alt-F-0.1B1.bin",
 file that you can use to flash Alt-F using Alt-F firmware updater web
