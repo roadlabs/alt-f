@@ -5,7 +5,7 @@
 If you have a one disk "standard" filesystem and which to convert it to RAID1,
 you can follow one of the following procedures:
 
-A: DON'T follow, a bug was found in (1) bellow
+A:
 -Create a new degraded RAID1 with your new disk using Disk->Wizard (1)
 -Copy all data from the old "standard" partition to the new RAID1 using Setup->Folders
 -Verify that the data in the RAID1 is fine
