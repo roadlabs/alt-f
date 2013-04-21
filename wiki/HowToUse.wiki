@@ -62,15 +62,25 @@ with a fixed IP using the vendor's firmware. This will be the IP used by Alt-F.
 First time setup
 ================
 
-After getting the box IP and accessing it using a browser, you will see
-Alt-F status page. To go to any other page you have to setup and confirm
+After getting the box IP and accessing it using a browser, you will see Alt-F status page.
+
+Before proceeding, wait for any filesystem check to finish, as reported in the
+"Filesystem Maintenance" section.
+This might take several hours to accomplish, and is the consequence of an unclean box shut down,
+as performed by some versions of the vendor's firmware.
+This step might fail if there are errors that can't be automatically repaired,
+and in this case, the filesystem will appear as RO (Read Only), in red,
+in the "Mounted Filesystems" section.
+This step might also fail if there is not enough "Swap" space, as reported in the "System" section.
+
+To go to any other page you have to setup and confirm
 an administrative password. The 'root' user (the linux Administrator)
 password will be the same.
 
 You can then login using telnet or ssh and change the root password
 using the "passwd" command. Note that if you later change the password
 using the web page, than the root password will also be changed, so the
-recommend procedure is to first set up a web password and then login
+recommended procedure is to first set up a web password and then login
 using telnet or ssh and change the root password.
 
 The first time that you use the web pages or change the password, you
@@ -89,7 +99,7 @@ recognize most partitioning schemes. Be aware that some partitioning schemes,
 filesystems or RAID layouts are not recognized be the vendor's firmware.
 
 Setup->Users: you must create at least one user. You will be asked for a filesystem
-where a directory called Users will be created, and where all users home directory
+where a folder called Users will be created, and where all users home folders
 will be created.
 To create a new user give the user name, such as 'John Smith', a nick name, such
 as 'jsmith' (no spaces), and a password and password confirmation.
@@ -147,7 +157,7 @@ warned that is time for you to start a filesystem check, in order to
 avoid the lengthy check at the next boot.
 
 After checking/fixing, Alt-F will mount all the disks filesystems in
-the directory /mnt/<name>, where <name> can be either the disk partition
+the folder /mnt/<name>, where <name> can be either the disk partition
 name, as in /mnt/sda3, or a filesystem label, such as /mnt/Backups.
 
 If during the check/fix step the partition was dirty and could not be fixed,
@@ -180,17 +190,17 @@ raid-5) device is inserted. This is work in progress.
 SPECIAL FOLDERS
 ===============
 
-When mounting filesystems, Alt-F will look for a directory called "ffp"
+When mounting filesystems, Alt-F will look for a folder called "ffp"
 in the filesystem root, and if found a link is created to it at the
 root, /. Using the "ffp Package Manager" web page you can install, update or
 remove ffp packages.
 
-If a directory name "Users" is found, will be linked to /home.
+If a folder name "Users" is found, will be linked to /home.
 
-Alt-F also looks for a directory called "Alt-F". If found it will be
+Alt-F also looks for a folder called "Alt-F". If found it will be
 aufs-mounted on top of root, "/", shadowing it. This means that any files
 (including executable) existing there will be used instead.
-Mostly DON'T change or add nothing in that directory, or the box
+Mostly DON'T change or add nothing in that folder, or the box
 might crash.
 
 PRINTERS
