@@ -1,7 +1,0 @@
-#summary Use https://sourceforge.net/p/alt-f/wiki/Home sourceforge
-
-Existing Wikis are being moved to [https://sourceforge.net/p/alt-f/wiki/Home sourceforge].
-
-This section will disappear as soon as all wikis are moved.
-
-You can add your own wikis or improve existing ones, as long as you are a registered sourceforge user.
