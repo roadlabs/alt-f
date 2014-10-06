@@ -1,0 +1,6 @@
+/etc/nut.conf
+/etc/ups.conf
+/etc/upsd.conf
+/etc/upsd.users
+/etc/upsmon.conf
+/etc/upssched.conf

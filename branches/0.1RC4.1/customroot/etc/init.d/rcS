@@ -1,0 +1,370 @@
+#!/bin/sh
+
+/bin/mount -t proc proc /proc
+/bin/mount -o remount,rw /
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t tmpfs tmpfs /tmp
+/bin/mount -t devpts devpts /dev/pts
+#mount -t devtmpfs devtmpfs /dev # no obvious advantage?
+
+rmdir /newroot/rootmnt /newroot >& /dev/null
+
+for i in lib run log cache spool db lock; do
+	mkdir -p /tmp/$i
+	ln -sf /tmp/$i /var/$i
+done
+
+mkdir -p /mnt /var/spool/lpd /var/spool/samba
+chmod a+wt /var/spool/lpd /var/spool/samba
+
+echo > /etc/bay
+echo -n > /etc/printcap
+
+# bootlog. syslog has not yet started, and hot.sh uses "logger",
+TSYSLOG=/var/log/boot.log
+start-stop-daemon -S -q -x syslogd -- -m 0 -D -S -O $TSYSLOG
+
+# what box/board?
+mkdir -p /tmp/sys
+
+if grep -q 'DNS-321/323' /proc/cpuinfo; then
+	case $(sed -n 's/Revision.*:.\([[:digit:]]*\).*/\1/p' /proc/cpuinfo) in
+		0000) board="DNS-323-A1" ;;
+		0001) board="DNS-323-B1" ;;
+		0002) board="DNS-323-C1" ;;
+		0003) board="DNS-321-A1A2" ;; 
+	esac
+elif grep -q 'DNS-320L' /proc/cpuinfo; then
+	board="DNS-320L-A1"
+elif grep -q 'DNS-320.*A1/A2' /proc/device-tree/model 2> /dev/null; then
+	board="DNS-320-A1A2"
+elif grep -q 'DNS-325.*A1/A2' /proc/device-tree/model 2> /dev/null; then
+	board="DNS-325-A1A2"
+else
+	board="Unknown"
+fi
+
+echo $board > /tmp/board
+
+if echo $board | grep -qE "DNS-321|DNS-323"; then
+	kernel_mtd=/dev/mtd2; kernel_mn="90 4"
+	config_mtd=/dev/mtdblock0; config_mn="31 0"
+	
+	ln -sf "/sys/class/leds/power:blue" /tmp/sys/power_led
+	ln -sf "/sys/class/leds/left:amber" /tmp/sys/left_led
+	ln -sf "/sys/class/leds/right:amber" /tmp/sys/right_led
+
+elif echo $board | grep -qE "DNS-320|DNS-325"; then
+	kernel_mtd=/dev/mtd1; kernel_mn="90 2"
+	config_mtd=/dev/mtdblock5; config_mn="31 5"
+
+	# Tell PMU to turn back on after a power failure
+	# From http://jamie.lentin.co.uk/devices/dlink-dns325/userland-configuration/
+	if test $board = "DNS-320-A1A2" -o $board = "DNS-325-A1A2"; then
+		echo 37 > /sys/class/gpio/export
+		echo out > /sys/class/gpio/gpio37/direction
+		echo 1 > /sys/class/gpio/gpio37/value
+		echo 37 > /sys/class/gpio/unexport
+	fi
+
+	# MAC is stored in /dev/mtd4, configure eth0
+	if ! test -e /dev/mtd4; then mknod /dev/mtd4 c 90 8; fi
+	ifconfig eth0 hw ether $(nanddump -ql 2048 /dev/mtd4 | grep -E '..(:..){5}')
+
+	# get squashfs image from NAND and loop/aufs mount it.
+	# squashfs can't be run from a NAND flash (dns-320/325), in contrast to a NOR flash (dns-323/321)
+	if ! test -e /dev/mtd3; then mknod /dev/mtd3 c 90 6; fi
+	eval $(nanddump -ql 2048 /dev/mtd3 | strings) # contains sqimage_size=bytes_of_sqimage;
+	if test -n "$sqimage_size"; then
+		if test "$sqimage_size" -gt 0 -a "$sqimage_size" -lt 30000000; then
+			nanddump -qf /tmp/sqimage.xz -s 2048 -l $sqimage_size /dev/mtd3
+		fi
+	fi
+
+	if test -s /tmp/sqimage.xz; then
+		mkdir -p /rootmnt/sqimage
+		mount -o loop /tmp/sqimage.xz /rootmnt/sqimage
+		mount -t aufs -o remount,append:/rootmnt/sqimage=rr /
+	fi
+
+	if test $board = "DNS-320-A1A2"; then
+		ln -sf "/sys/class/leds/dns320:blue:power" /tmp/sys/power_led
+		ln -sf "/sys/class/leds/dns320:orange:l_hdd" /tmp/sys/left_led
+		ln -sf "/sys/class/leds/dns320:orange:r_hdd" /tmp/sys/right_led
+		ln -sf "/sys/class/leds/dns320:orange:usb" /tmp/sys/usb_led
+		ln -sf "/sys/class/leds/dns320:blue:usb" /tmp/sys/usb2_led
+
+		# launch dns320-temp.sh
+		echo 40 > /tmp/sys/temp1_input
+		sed -i 's/^#[[:space:]]*\(.*dns320-temp.sh.*\)/\1/' /etc/inittab
+		kill -1 1
+
+	elif test $board = "DNS-320L-A1"; then
+		ln -sf "/sys/class/leds/dns320l:red:sata0" /tmp/sys/left_led
+		ln -sf "/sys/class/leds/dns320l:red:sata1" /tmp/sys/right_led
+		ln -sf "/sys/class/leds/dns320l:orange:usb" /tmp/sys/usb_led
+		ln -sf "/sys/class/leds/dns320l:blue:usb" /tmp/sys/usb2_led
+		mkdir -p /tmp/sys/power_led
+
+		# launch dns320l-daemon
+		sed -i 's/^#[[:space:]]*\(.*dns320l-daemon.*\)/\1/' /etc/inittab
+		kill -1 1
+
+	elif test $board = "DNS-325-A1A2"; then
+		ln -sf "/sys/class/leds/dns325:white:power" /tmp/sys/power_led
+		ln -sf "/sys/class/leds/dns325:red:l_hdd" /tmp/sys/left_led
+		ln -sf "/sys/class/leds/dns325:red:r_hdd" /tmp/sys/right_led
+		ln -sf "/sys/class/leds/dns325:red:usb" /tmp/sys/usb_led
+		ln -sf "/sys/class/leds/dns325:white:usb" /tmp/sys/usb2_led
+	fi
+fi
+
+if test "$board" != "Unknown"; then
+	if ! test -e $kernel_mtd; then mknod $kernel_mtd c $kernel_mn; fi
+	if ! test -e $config_mtd; then mknod $config_mtd b $config_mn; fi
+
+	if test -f /sys/class/hwmon/hwmon0/device/pwm1; then
+		ln -sf /sys/class/hwmon/hwmon0/device/pwm1 /tmp/sys/pwm1
+	elif test -f /sys/class/hwmon/hwmon1/device/pwm1; then
+		ln -sf /sys/class/hwmon/hwmon1/device/pwm1 /tmp/sys/pwm1
+	else
+		touch /tmp/sys/pwm1
+	fi
+
+	if test -f /sys/class/hwmon/hwmon0/device/temp1_input; then
+		ln -sf /sys/class/hwmon/hwmon0/device/temp1_input /tmp/sys/temp1_input
+	elif test -f /sys/class/hwmon/hwmon1/device/temp1_input; then
+		ln -sf /sys/class/hwmon/hwmon1/device/temp1_input /tmp/sys/temp1_input
+	else
+		touch /tmp/sys/temp1_input
+	fi
+
+	if test -f /sys/class/hwmon/hwmon0/device/fan1_input; then
+		ln -sf /sys/class/hwmon/hwmon0/device/fan1_input /tmp/sys/fan1_input
+	elif test -f /sys/class/hwmon/hwmon1/device/temp1_input; then
+		ln -sf /sys/class/hwmon/hwmon1/device/fan1_input /tmp/sys/fan1_input
+	else
+		touch /tmp/sys/fan1_input
+	fi
+
+	# start fan because the disks might have to be fsck and might warm up a lot in the process
+	# For the DNS-320L the dns320l-daemon handles fan/temp
+	echo 127 > /tmp/sys/pwm1
+
+	# stop blinking power-led.
+	echo "none" > /tmp/sys/power_led/trigger
+fi
+
+# set system clock from RTC, in UTC
+# kernel do it at boot time, but seems to not wait for second change
+if test $board = "DNS-320L-A1"; then
+	echo -e 'hctosys\r' | nc local:/var/run/dns320l.socket
+else
+	if ! test -e /dev/rtc0; then mknod /dev/rtc0 c 254 0; fi
+	i=0; o="$(hwclock)"
+	while test "$o" = "$(hwclock)" -a "$i" -lt 200; do i=$((i+1)); done
+	hwclock -su
+fi
+
+logger -st rcS "Board: $board"
+logger -st rcS "Flashed Firmware: $(dd if=$kernel_mtd ibs=32 skip=1 count=1 2> /dev/null | strings)"
+
+# don't load flash-saved defaults if "nodef" exists in kernel cmdline
+no_defaults=1
+if ! grep -q "nodef" /proc/cmdline; then
+	if ! res=$(loadsave_settings -ck); then
+		logger -st rcS "$res"
+	fi
+	res=$(loadsave_settings -lf)
+	no_defaults=$?
+	logger -st rcS "$res"
+	
+	if test -s /etc/misc.conf; then
+		. /etc/misc.conf
+	fi
+fi
+
+# create lock file for aufs.sh synchronization, minimizing (not solving!) hotpluging
+# interation issues with initscripts when /Alt-F is mounted
+aufslock=/tmp/.aufs-lock
+while ! mkdir $aufslock >& /dev/null; do usleep 500000; done
+
+# sequence hotplug events
+echo > /dev/mdev.seq 
+# populate /dev
+/sbin/mdev -s
+# "hotplug", mdev.conf registers /usr/sbin/hot.sh, 
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+
+# set a default hostname
+hostname -F /etc/hostname
+
+# setup loopback interface
+/sbin/ifconfig lo 127.0.0.1 up
+/sbin/route add -net 127.0.0.0 netmask 255.0.0.0 lo
+
+# get an ip using the following priority:
+# 1st, use kernel cmd line ip= (kexec or fonz reloaded)
+# 2nd, use defaults stored in flash
+# 3d, try to read vendor sib.conf
+# 4th, try to use a dhcp server
+# 5th, find and use a non-used ip address from 192.168.1.254 to 230 range
+if grep -q "ip=" /proc/cmdline; then
+	logger -st rcS "IP from kernel cmdline, kernel brings eth0 up"
+	cip="kip"
+	eval $(cat /proc/cmdline)
+	ns=$(echo $ip | awk -F: '{ print $3 }')
+	if test -n "$ns"; then
+		sed -i "/$ns/d" /etc/resolv.conf
+		echo "nameserver $ns" >> /etc/resolv.conf
+	fi
+	hn="$(echo $ip | awk -F: '{ print $5 }')"
+	if test -n "$hn"; then
+		domain=$(echo $hn | cut -d"." -f2)
+		hostname $(echo $hn | cut -d"." -f1)
+	fi
+	ifconfig eth0 up
+elif test $no_defaults = "0"; then
+	logger -st rcS "IP from flash-defaults"
+	cip="def"
+	ifup eth0
+else
+	res=$(loadsave_settings -rs)
+	if test $? = 0; then
+		logger -st rcS "IP from sib.conf"
+		cip="sib"
+		eval $res
+		ifconfig eth0 up $ip netmask $mask
+		route add default gw $gw
+		if test -n "$ns1"; then
+			sed -i "/$ns1/d" /etc/resolv.conf
+			echo "nameserver $ns1" >> /etc/resolv.conf
+		fi
+		if test -n "$ns2"; then
+			sed -i "/$ns2/d" /etc/resolv.conf
+			echo "nameserver $ns2" >> /etc/resolv.conf
+		fi
+		hostname $host # host set from (loadsave_settings -rs)
+	else
+		ifconfig eth0 up
+		sleep 3
+		udhcpc -Sfqns /dev/null
+		if test $? = 0; then
+			logger -st rcS "IP from dhcp server"
+			cip="dhcp"
+		else
+			logger -st rcS "Fixed IP"
+			ifconfig eth0 0.0.0.0
+			sleep 3
+			for i in $(seq 254 -1 230); do
+				res=$(arping -Dw 2 192.168.1.$i)
+				st=$?
+				logger -st rcS "$res"
+				if test $st = 0; then break; fi
+			done
+			logger -st rcS "using 192.168.1.$i"
+			ifconfig eth0 192.168.1.$i
+			cip="fip"
+		fi
+	fi
+fi
+
+# setup minimum network services (httpd is mandatory)
+case $cip in
+	"kip" | "fip" | "sib")
+		# set hostname/hostip	
+		hostip=$(ifconfig eth0 | awk '/inet addr/ { print substr($2, 6) }')
+		netmask=$(ifconfig eth0 | awk '/inet addr/ { print substr($4, 6) }')
+		eval $(ipcalc -n $hostip $netmask) # evaluate NETWORK
+		gateway=$(route -n | awk '$1 == "0.0.0.0" { print $2 }')
+		broadcast=$(ifconfig eth0 | awk '/inet addr/ { print substr($3, 7) }')
+		mtu=$(ifconfig eth0 | awk '/MTU/{print substr($5,5)}')
+
+		if test "$(hostname)" = "(none)"; then
+			hostname -F /etc/hostname
+		fi
+		if test -z "$domain"; then
+			domain=$(awk '/(domain|search)/{print $2}' /etc/resolv.conf)
+			if test -z "$domain"; then domain="localnet"; fi
+		fi
+
+		sed -i -e "/^$hostip[[:space:]]/d" \
+			-e "/[[:space:]]$hostname.$domain[[:space:]]/d" \
+			-e "/[[:space:]]${hostname}$/d" /etc/hosts
+		echo "$hostip $(hostname).$domain $(hostname)" >> /etc/hosts
+		
+		# set httpd hosts allow/deny
+		sed -i "s|^A:.*#!# Allow local net.*$|A:$NETWORK/$netmask #!# Allow local net|" /etc/httpd.conf
+
+		# set smb.conf hosts allow and workgroup
+		sed -i "s|hosts allow = \([^ ]*\) \([^ ]*\)\(.*$\)|hosts allow = 127. $NETWORK/${netmask}\3|" /etc/samba/smb.conf
+
+		cat<<-EOF > /etc/network/interfaces
+			auto lo
+			iface lo inet loopback
+
+			auto eth0
+			iface eth0 inet static
+			address $hostip
+			netmask $netmask
+			broadcast $broadcast
+			gateway $gateway
+			mtu $mtu
+		EOF
+		;;
+
+	"dhcp")
+		cat<<-EOF > /etc/network/interfaces
+			auto lo
+			  iface lo inet loopback
+
+			auto eth0
+			  iface eth0 inet dhcp
+			  client udhcpc
+			  hostname $(hostname)
+		EOF
+		
+		ifup eth0
+		;;
+
+	"def")
+		hostname -F /etc/hostname
+		;;
+esac
+
+# configure kernel parameters
+sysctl -p
+
+# create mountpoints for remote filesystems, but don't mount them
+while read dev mp fs rest; do
+	if test "$fs" = "nfs" -o "$fs" = "cifs"; then 
+		if ! test -d $mp; then
+			mkdir -p $mp
+		fi
+	 fi
+done < /etc/fstab
+
+# create rc* shortcuts to /etc/init.d/S??*
+ln -f /etc/init.d/rcall /sbin/rcall
+for i in /etc/init.d/S??*; do
+	f=$(basename $i)
+	ln -sf /usr/sbin/rcscript /sbin/rc${f#S??}
+done
+
+# stop temporary syslog to /var/log/boot.log
+start-stop-daemon -K -q -n syslogd
+
+# Start all executable init scripts
+rcall start
+
+# remove aufs.sh lock
+rmdir $aufslock
+
+# append boot.log to syslog:
+logger "****** Start of appended early system log ******"
+while read a b time sys msg; do
+	logger -t ${sys%:} -p user.debug "($time) $msg"
+done < $TSYSLOG
+logger "****** End of appended early system log ******"
+
+rm -f $TSYSLOG
