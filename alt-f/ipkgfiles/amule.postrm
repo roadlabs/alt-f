@@ -1,5 +1,0 @@
-#!/bin/sh
-
-deluser amule
-delgroup BT
-rm -f /sbin/rcamule

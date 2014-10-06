@@ -1,9 +1,0 @@
-Package: cups
-Version: 1.4.8-3
-Description: The Common Unix Printing System
-Depends: gs, libusb, ipkg
-Architecture: arm
-Priority: optional
-Section: printing
-Source: http://www.cups.org
-Maintainer: jcard

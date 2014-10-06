@@ -1,0 +1,83 @@
+#!/bin/sh
+
+DESC="ssh, telnet, rsync, ftp, http, swat, lpd...<br><strong>Don't disable unless you have a serial port!</strong>"
+TYPE=net
+NAME=inetd
+CONFF=/etc/inetd.conf
+AVAHI_SRV="rsync ssh telnet ftp http printer swat"
+
+REQUIRE="inetd" # don't allow inetd to be stopped
+
+. /etc/init.d/common
+
+#set -x
+
+check() {
+	if ! grep -q "\(^#$1[[:space:]]\|^$1[[:space:]]\)" $CONFF; then
+		echo "$NAME: service $1 does not exists"
+		return 1
+	fi
+}
+
+# $1-service (rsync ssh telnet ftp http printer swat)
+enable() {
+	for i in $*; do
+		if ! check $i; then continue; fi
+		if grep -q "^#$i[[:space:]]" $CONFF; then
+			if test "$i" = "printer"; then modprobe usblp; fi
+			sed -i "s/^#$i[[:space:]]/$i\\t/" $CONFF
+			avahi add $i
+		fi
+	done
+	reload $NAME
+}
+
+disable() {
+	for i in $*; do
+		if ! check $i; then continue; fi
+		if grep -q "^$i[[:space:]]" $CONFF; then
+			if test "$i" = "printer"; then modprobe -r usblp; fi
+			sed -i "s/^$i[[:space:]]/#$i\\t/" $CONFF
+			avahi remove $i
+		fi
+	done
+	reload $NAME
+}
+
+avahi_add() {
+	for i in $AVAHI_SRV; do
+		if grep -q "^$i[[:space:]]" $CONFF; then
+			avahi add $i
+		fi
+	done
+}
+
+avahi_remove() {
+	for i in $AVAHI_SRV; do
+		avahi remove $i
+	done
+}
+
+istart() {
+		if grep -q "^printer" $CONFF; then modprobe usblp; fi
+		if ! grep -q '^ftps.*implicit_ssl=' $CONFF; then # FIXME: to remove after RC4
+			sed -i "/ftp/a \
+ftps	stream	tcp	nowait	root	/usr/sbin/vsftpd	vsftpd -oimplicit_ssl=yes" $CONFF
+		fi
+		rcdropbear init
+		rcvsftpd init
+		rcstunnel init
+		avahi_add
+		start $NAME
+}
+
+case "$1" in
+	start) istart ;;
+	stop) stop $NAME; avahi_remove ;;
+	restart) restart $NAME ;;
+	reload) reload $NAME ;;
+	status) status $NAME ;;
+	enable) shift; enable $* ;;
+	disable) shift; disable $* ;;
+	*) usage $0 "start|stop|status|reload|restart|enable <srv>|disable <srv>" ;;
+esac

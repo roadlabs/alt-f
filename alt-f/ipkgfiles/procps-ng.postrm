@@ -1,4 +1,0 @@
-#!/bin/sh
-
-sed -i '\|/usr/local/bin:\\|d' /etc/profile
-
