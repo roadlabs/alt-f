@@ -1,6 +1,0 @@
-#!/bin/sh
-
-deluser ups
-delgroup nut
-
-rm -f /sbin/rcnut
