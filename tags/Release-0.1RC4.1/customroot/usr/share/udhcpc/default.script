@@ -1,0 +1,86 @@
+#!/bin/sh
+
+# udhcpc script edited by Tim Riker <Tim@Rikers.org>
+# heavily modified for Alt-F by jcard
+
+[ -z "$1" ] && logger -st udhcpc "$0: Error, should be called from udhcpc" && exit 1
+
+#debug=true
+MODFILES="/etc/hosts /etc/resolv.conf /etc/samba/smb.conf /etc/httpd.conf"
+
+# record current date on modifiable files
+for i in $MODFILES; do
+    touch -r $i /tmp/$(basename $i)
+done
+
+RESOLV_CONF="/etc/resolv.conf"
+[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+[ -n "$subnet" ] && NETMASK="netmask $subnet"
+
+case "$1" in
+	deconfig)
+		logger -st udhcpc "Deconfiguring $interface"
+		/sbin/ifconfig $interface 0.0.0.0
+		;;
+
+	renew|bound)
+		if test -n "$debug"; then
+			logger -st udhcpc "udhcpc environment:"
+			for i in $(env); do logger -st udhcpc "   $i"; done
+		else
+			logger -st udhcpc "Renew: Using $ip for $lease seconds"
+		fi
+
+		# evaluate NETWORK
+		eval $(ipcalc -n $ip $subnet)
+
+		if test -z "$domain"; then domain="localnet"; fi
+
+		if test -n "$mtu"; then MTU="mtu $mtu"
+		elif test -n "$IF_MTU"; then MTU="mtu $IF_MTU"
+		else MTU="mtu 1500"
+		fi
+
+		/sbin/ifconfig $interface $ip $BROADCAST $NETMASK $MTU
+
+		hname=$(hostname)
+		logger -st udhcpc "Updating /etc/hosts: $ip $hname.$domain $hname"
+		if fnm=$(hostname -f); then
+			sed -i '/^[^#].*'$fnm'/d' /etc/hosts
+		fi
+		echo -ne "$ip\t$hname.$domain\t$hname\n" >> /etc/hosts
+
+		logger -st udhcpc "Updating /etc/httpd.conf: allow $NETWORK/$subnet"
+		sed -i "s|^A:.*#!# Allow local net.*$|A:$NETWORK/$subnet #!# Allow local net|" /etc/httpd.conf
+
+		logger -st udhcpc "Updating /etc/samba/smb.conf: allow $NETWORK/${subnet}"
+		sed -i "s|hosts allow = \([^ ]*\) \([^ ]*\)\(.*$\)|hosts allow = 127. $NETWORK/${subnet}\3|" /etc/samba/smb.conf
+		
+		if test -n "$router"; then
+			while route del default gw 0.0.0.0 dev $interface 2>/dev/null; do true; done
+			msg="adding route"
+			for i in $router ; do
+				msg="$msg $i"
+				route add default gw $i dev $interface
+			done
+			logger -st udhcpc "Updating $interface default route: $msg"
+		fi
+
+		echo -n > $RESOLV_CONF
+		echo search $domain >> $RESOLV_CONF
+		msg="adding nameserver"
+		for i in $dns ; do
+			msg="$msg $i"
+			echo nameserver $i >> $RESOLV_CONF
+		done
+		logger -st udhcpc "Updating /etc/resolv.conf: $msg"
+		;;
+esac
+
+# recover dates on modified files
+for i in $MODFILES; do
+    touch -r /tmp/$(basename $i) $i
+	rm /tmp/$(basename $i)
+done
+
+exit 0

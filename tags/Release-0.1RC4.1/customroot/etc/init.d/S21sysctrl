@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# Starts sysctrl.
+#
+
+DESC="fan/temperature/buttons/sleep/MD Daemon"
+NAME=sysctrl
+TYPE=sys
+
+umask 077
+
+. /etc/init.d/common
+
+case "$1" in
+	start) start $NAME ;;
+	stop)	stop $NAME ;;
+	status)	status $NAME ;;
+	reload) reload $NAME ;;
+	restart) restart $NAME ;;
+	*)  usage $0 "start|stop|status|restart|reload" ;;
+esac

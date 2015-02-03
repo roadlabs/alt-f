@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Starts dropbear sshd.
+#
+
+DESC="Light SSH/SFTP client/server"
+NAME=dropbear
+
+. /etc/init.d/common
+
+sinit() {
+	# Make sure dropbear directory exists
+	if [ ! -d /etc/dropbear ] ; then
+		mkdir -p /etc/dropbear
+	fi
+
+	# Check for the Dropbear RSA key
+	if [ ! -f /etc/dropbear/dropbear_rsa_host_key ] ; then
+		echo "$NAME: generating rsa key... "
+		/usr/bin/dropbearkey -t rsa -f /etc/dropbear/dropbear_rsa_host_key > /dev/null 2>&1
+	fi
+
+	# Check for the Dropbear DSS key
+	if [ ! -f /etc/dropbear/dropbear_dss_host_key ] ; then
+		echo "$NAME: generating dsa key... "
+		/usr/bin/dropbearkey -t dss -f /etc/dropbear/dropbear_dss_host_key > /dev/null 2>&1
+	fi
+
+	# Check for the Dropbear ECDSA key
+	if [ ! -f /etc/dropbear/dropbear_ecdsa_host_key ] ; then
+		echo "$NAME: generating ecdsa key... "
+		/usr/bin/dropbearkey -t ecdsa -f /etc/dropbear/dropbear_ecdsa_host_key > /dev/null 2>&1
+	fi
+
+	umask 077
+	#if ! test -e /var/log/lastlog; then touch /var/log/lastlog; fi
+}
+
+case "$1" in
+	start) sinit; start $NAME ;;
+	stop) stop $NAME ;;
+	status)	status $NAME ;;
+	restart) restart $NAME ;;
+	init) sinit ;;
+	*) usage $0 "start|stop|status|restart|init" ;;
+esac
